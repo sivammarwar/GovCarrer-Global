@@ -48,20 +48,21 @@ export const Header = ({ country, onChangeCountry }: HeaderProps) => {
 
           {/* ── Logo ───────────────────────────────────────── */}
           <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* Emblem */}
-            <div className="header-emblem" style={{
-              width: 46,
-              height: 46,
-              background: 'linear-gradient(135deg, #d4a017 0%, #f0cc5a 100%)',
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 10px rgba(212,160,23,0.4)',
-              flexShrink: 0
-            }}>
-              <Globe size={22} color="#0a1628" />
-            </div>
+            {/* Logo Image */}
+            <img 
+              src="/favicon.svg" 
+              alt="KV Results Logo" 
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 8,
+                objectFit: 'contain',
+                background: 'linear-gradient(135deg, #d4a017 0%, #f0cc5a 100%)',
+                padding: 4,
+                boxShadow: '0 2px 10px rgba(212,160,23,0.4)',
+                flexShrink: 0
+              }}
+            />
 
             <div className="header-text">
               <h1 style={{
@@ -72,7 +73,7 @@ export const Header = ({ country, onChangeCountry }: HeaderProps) => {
                 letterSpacing: '-0.01em',
                 lineHeight: 1.2
               }}>
-                GovCareer Global
+                KV Results
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
                 <p className="header-subtitle" style={{
@@ -82,7 +83,7 @@ export const Header = ({ country, onChangeCountry }: HeaderProps) => {
                   fontWeight: 500,
                   letterSpacing: '0.04em'
                 }}>
-                  Worldwide Government Opportunities
+                  Government Exam Results & Career Updates
                 </p>
                 <span className="header-badge" style={{
                   display: 'inline-flex',
