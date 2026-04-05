@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Send, MessageCircle } from "lucide-react";
 
@@ -55,6 +55,8 @@ const formatTime = (timestamp: string): string => {
 export const ChatPage = () => {
   const { sectionId } = useParams<{ sectionId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const countryCode = searchParams.get("country");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [username, setUsername] = useState<string>("");
@@ -346,7 +348,13 @@ export const ChatPage = () => {
         }}
       >
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            if (countryCode) {
+              navigate(`/?country=${countryCode}`);
+            } else {
+              navigate("/");
+            }
+          }}
           style={{
             background: "rgba(255,255,255,0.2)",
             border: "none",

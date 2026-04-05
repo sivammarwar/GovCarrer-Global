@@ -1,15 +1,19 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ChatFloatingButtonProps {
   sectionId: string;
+  countryId?: string;
   hasUnread?: boolean;
 }
 
-export const ChatFloatingButton = ({ sectionId, hasUnread = false }: ChatFloatingButtonProps) => {
+export const ChatFloatingButton = ({ sectionId, countryId, hasUnread = false }: ChatFloatingButtonProps) => {
   const navigate = useNavigate();
+  const { sectionId: paramSectionId } = useParams<{ sectionId: string }>();
+  const [searchParams] = useSearchParams();
+  const countryCode = searchParams.get("country");
   const [color, setColor] = useState<string>("#dc2626");
 
   useEffect(() => {
@@ -30,7 +34,7 @@ export const ChatFloatingButton = ({ sectionId, hasUnread = false }: ChatFloatin
 
   return (
     <button
-      onClick={() => navigate(`/chat/${sectionId}`)}
+      onClick={() => navigate(countryCode ? `/chat/${sectionId}?country=${countryCode}` : `/chat/${sectionId}`)}
       style={{
         position: "fixed",
         bottom: "24px",
@@ -62,13 +66,13 @@ export const ChatFloatingButton = ({ sectionId, hasUnread = false }: ChatFloatin
       <MessageCircle size={20} />
       <span style={{ whiteSpace: "nowrap" }}>Chat with peers</span>
       {hasUnread && (
-        <span
-          style={{
-            width: "10px",
-            height: "10px",
-            background: "#fbbf24",
-            borderRadius: "50%",
-            animation: "pulse 1.5s infinite"
+        <button
+          onClick={() => {
+            if (countryCode) {
+              navigate(`/?country=${countryCode}`);
+            } else {
+              navigate("/");
+            }
           }}
         />
       )}

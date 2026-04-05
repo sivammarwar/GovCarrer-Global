@@ -122,7 +122,7 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
           ))}
         </div>
       )}
-      {isActive && <ChatFloatingButton sectionId={section.slug} />}
+      {isActive && <ChatFloatingButton sectionId={section.slug} countryId={countryId} />}
     </div>
   );
 };
