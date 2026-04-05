@@ -127,39 +127,54 @@ export type Database = {
       }
       dynamic_sections: {
         Row: {
+          ai_prompt: string | null
           color: string | null
           created_at: string | null
+          description: string | null
           display_order: number | null
           icon: string | null
           id: string
           is_active: boolean | null
           name: string
           section_type: string
+          show_in_tabs: boolean | null
+          show_in_timeline: boolean | null
           slug: string
+          tab_order: number | null
           updated_at: string | null
         }
         Insert: {
+          ai_prompt?: string | null
           color?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           section_type: string
+          show_in_tabs?: boolean | null
+          show_in_timeline?: boolean | null
           slug: string
+          tab_order?: number | null
           updated_at?: string | null
         }
         Update: {
+          ai_prompt?: string | null
           color?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           section_type?: string
+          show_in_tabs?: boolean | null
+          show_in_timeline?: boolean | null
           slug?: string
+          tab_order?: number | null
           updated_at?: string | null
         }
         Relationships: []

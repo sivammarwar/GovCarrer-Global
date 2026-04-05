@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DynamicSection {
@@ -38,12 +38,17 @@ export interface DynamicSectionItem {
   } | null;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// useDynamicSections
+// Fetches all active sections shown in tabs.
+// Includes realtime subscription so new sections appear without reload.
+// ─────────────────────────────────────────────────────────────────────────────
 export const useDynamicSections = () => {
   const [sections, setSections] = useState<DynamicSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSections = async () => {
+  const fetchSections = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -62,21 +67,51 @@ export const useDynamicSections = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSections();
-  }, []);
+
+    // Realtime: re-fetch whenever any section row changes
+    const channel = supabase
+      .channel("dynamic-sections-watch")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "dynamic_sections",
+        },
+        () => {
+          fetchSections();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSections]);
 
   return { sections, loading, error, refetch: fetchSections };
 };
 
-export const useDynamicSectionItems = (sectionId: string | null, countryId?: string) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// useDynamicSectionItems
+// Fetches items for a given section, filtered optionally by country.
+// Realtime subscription fires on INSERT / UPDATE / DELETE so:
+//   - Uploading a new item → list updates instantly, no page reload needed.
+//   - Editing / deleting an item → list reflects the change immediately.
+// ─────────────────────────────────────────────────────────────────────────────
+export const useDynamicSectionItems = (
+  sectionId: string | null,
+  countryId?: string
+) => {
   const [items, setItems] = useState<DynamicSectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     if (!sectionId) {
       setItems([]);
       setLoading(false);
@@ -85,7 +120,7 @@ export const useDynamicSectionItems = (sectionId: string | null, countryId?: str
 
     try {
       setLoading(true);
-      
+
       // Fetch items and countries separately
       const [itemsRes, countriesRes] = await Promise.all([
         supabase
@@ -95,26 +130,34 @@ export const useDynamicSectionItems = (sectionId: string | null, countryId?: str
           .eq("is_active", true)
           .order("is_pinned", { ascending: false })
           .order("date_value", { ascending: false }),
-        supabase.from("countries").select("id, country_name, flag_emoji").eq("is_active", true)
+        supabase
+          .from("countries")
+          .select("id, country_name, flag_emoji")
+          .eq("is_active", true),
       ]);
 
       if (itemsRes.error) throw itemsRes.error;
-      
+
       // Join countries manually
-      const countriesMap = new Map((countriesRes.data || []).map(c => [c.id, c]));
-      const itemsWithCountries = (itemsRes.data || []).map(item => ({
+      const countriesMap = new Map(
+        (countriesRes.data || []).map((c) => [c.id, c])
+      );
+      const itemsWithCountries = (itemsRes.data || []).map((item) => ({
         ...item,
-        countries: item.country_id ? countriesMap.get(item.country_id) || null : null
+        countries: item.country_id
+          ? countriesMap.get(item.country_id) || null
+          : null,
       }));
-      
+
       // Filter by country if specified
       let filteredItems = itemsWithCountries;
       if (countryId) {
         filteredItems = itemsWithCountries.filter(
-          item => item.country_id === countryId || item.country_id === null
+          (item) =>
+            item.country_id === countryId || item.country_id === null
         );
       }
-      
+
       setItems(filteredItems);
     } catch (err: any) {
       setError(err.message);
@@ -122,11 +165,39 @@ export const useDynamicSectionItems = (sectionId: string | null, countryId?: str
     } finally {
       setLoading(false);
     }
-  };
+  }, [sectionId, countryId]);
 
   useEffect(() => {
     fetchItems();
-  }, [sectionId, countryId]);
+
+    if (!sectionId) return;
+
+    // Realtime subscription scoped to this section's items.
+    // Any INSERT / UPDATE / DELETE triggers a full re-fetch so the list
+    // always reflects the database — no manual reload required.
+    const channel = supabase
+      .channel(`section-items-${sectionId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "dynamic_section_items",
+          filter: `section_id=eq.${sectionId}`,
+        },
+        (payload) => {
+          console.log("[useDynamicSectionItems] realtime event:", payload.eventType);
+          fetchItems();
+        }
+      )
+      .subscribe((status) => {
+        console.log(`[useDynamicSectionItems] channel status (${sectionId}):`, status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sectionId, countryId, fetchItems]);
 
   return { items, loading, error, refetch: fetchItems };
 };

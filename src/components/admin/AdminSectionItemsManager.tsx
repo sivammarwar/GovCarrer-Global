@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Edit2, Trash2, Search, X, Pin, PinOff, Eye, EyeOff, Calendar, ExternalLink, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
     form_data: [],
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     const [itemsRes, countriesRes] = await Promise.all([
       supabase
@@ -119,9 +119,9 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
 
     if (countriesRes.data) setCountries(countriesRes.data);
     setLoading(false);
-  };
+  }, [section.id, toast]);
 
-  useEffect(() => { fetchData(); }, [section.id]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =

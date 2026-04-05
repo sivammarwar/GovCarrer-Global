@@ -6,6 +6,15 @@ import { useParams, useNavigate, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
+import { AdminProvider } from "@/contexts/AdminContext";
+
+// Dynamically import components at module level (not inside component)
+const AdminSectionItemsManager = lazy(() =>
+  import("@/components/admin/AdminSectionItemsManager").then((m) => ({
+    default: m.AdminSectionItemsManager,
+  }))
+);
 
 // Wrapper component for AdminSectionItemsManager to handle URL params
 const AdminSectionItemsManagerWrapper = () => {
@@ -18,6 +27,7 @@ const AdminSectionItemsManagerWrapper = () => {
   useEffect(() => {
     const fetchSection = async () => {
       if (!sectionId) return;
+      setLoading(true);
       const { data, error } = await supabase
         .from("dynamic_sections")
         .select("*")
@@ -57,21 +67,17 @@ const AdminSectionItemsManagerWrapper = () => {
     );
   }
   
-  // Dynamically import and render the component
-  const AdminSectionItemsManager = lazy(() =>
-    import("@/components/admin/AdminSectionItemsManager").then((m) => ({
-      default: m.AdminSectionItemsManager,
-    }))
-  );
-  
+  // Render with key to force remount on section change
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
-      <AdminSectionItemsManager section={section} onBack={() => navigate('/admin/section-manager')} />
+      <AdminSectionItemsManager 
+        key={section.id} 
+        section={section} 
+        onBack={() => navigate('/admin/section-manager')} 
+      />
     </Suspense>
   );
 };
-import { ErrorBoundary } from "react-error-boundary";
-import { AdminProvider } from "@/contexts/AdminContext";
 
 // Lazy load admin components for code splitting
 const AdminDashboard = lazy(() =>
@@ -111,12 +117,6 @@ const AIScraperAdmin = lazy(() =>
 const AdminSectionManager = lazy(() =>
   import("@/components/admin/AdminSectionManager").then((m) => ({
     default: m.AdminSectionManager,
-  }))
-);
-
-const AdminSectionItemsManager = lazy(() =>
-  import("@/components/admin/AdminSectionItemsManager").then((m) => ({
-    default: m.AdminSectionItemsManager,
   }))
 );
 
