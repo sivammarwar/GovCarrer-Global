@@ -1,0 +1,61 @@
+name: Verify Sitemap Health
+
+on:
+  # Run after successful deployment
+  deployment_status:
+  # Run on schedule (daily at 3 AM UTC)
+  schedule:
+    - cron: '0 3 * * *'
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  verify-sitemap:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'deployment_status' &&
+       github.event.deployment_status.state == 'success')
+
+    steps:
+      - name: Check sitemap endpoint is live
+        run: |
+          echo "🔍 Checking sitemap at https://kvresults.com/sitemap.xml ..."
+          
+          HTTP_STATUS=$(curl -s -o /tmp/sitemap.xml -w "%{http_code}" https://kvresults.com/sitemap.xml)
+          
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Sitemap endpoint returned HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Sitemap endpoint is live (HTTP 200)"
+
+      - name: Validate sitemap is valid XML
+        run: |
+          if grep -q '<?xml' /tmp/sitemap.xml; then
+            echo "✅ Response is valid XML"
+          else
+            echo "❌ Response is not valid XML. Content:"
+            cat /tmp/sitemap.xml
+            exit 1
+          fi
+
+      - name: Check sitemap has URLs
+        run: |
+          URL_COUNT=$(grep -c '<url>' /tmp/sitemap.xml || true)
+          echo "🔗 Total URLs found: $URL_COUNT"
+          
+          if [ "$URL_COUNT" -lt "1" ]; then
+            echo "❌ Sitemap has no URLs — something is wrong!"
+            exit 1
+          fi
+          
+          echo "✅ Sitemap looks healthy with $URL_COUNT URLs"
+
+      - name: Print sitemap stats
+        run: |
+          SIZE=$(wc -c < /tmp/sitemap.xml)
+          echo "📊 Sitemap size: $SIZE bytes"
+          echo "🌐 Sitemap URL: https://kvresults.com/sitemap.xml"

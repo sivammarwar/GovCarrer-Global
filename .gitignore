@@ -1,0 +1,25 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# production
+dist
+dist-ssr
+*.local
+
+# env files
+.env
+.env.local
+.env.production
+.env.development
+
+# vercel
+.vercel
+
+# misc
+.DS_Store
+*.pem

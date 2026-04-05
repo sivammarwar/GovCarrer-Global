@@ -1,0 +1,161 @@
+/* FIXED DESKTOP VIEW FOR ADMIN - Force desktop layout on all devices, no responsive behavior */
+
+/* Enforce minimum desktop width - prevent any shrinking */
+html {
+    min-width: 1280px !important;
+    overflow-x: auto !important; /* Allow horizontal scroll if needed */
+  }
+  
+  body {
+    min-width: 1280px !important;
+    overflow-x: auto !important;
+  }
+  
+  #root {
+    min-width: 1280px !important;
+  }
+  
+  /* Force containers to desktop width */
+  .container,
+  .mx-auto {
+    min-width: 1280px !important;
+  }
+  
+  /* DISABLE ALL RESPONSIVE BEHAVIOR FOR ADMIN */
+  /* Force desktop text sizes at ALL screen sizes */
+  .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+  .text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  .text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+  .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+  .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  .text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  .text-3xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+  .text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+  
+  /* Force desktop grid layouts at ALL screen sizes */
+  .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  
+  /* Force desktop flex direction at ALL screen sizes */
+  .flex-col { flex-direction: column !important; }
+  .flex-row { flex-direction: row !important; }
+  
+  .sm\:flex-row { flex-direction: row !important; }
+  .md\:flex-row { flex-direction: row !important; }
+  
+  /* Force desktop display at ALL screen sizes */
+  .hidden { display: none !important; }
+  .block { display: block !important; }
+  
+  .md\:block { display: block !important; }
+  .md\:flex { display: flex !important; }
+  .lg\:block { display: block !important; }
+  
+  .hidden.md\:block { display: block !important; }
+  .hidden.md\:flex { display: flex !important; }
+  
+  /* Force desktop width classes at ALL screen sizes */
+  .w-full { width: 100% !important; }
+  .md\:w-64 { width: 16rem !important; }
+  .md\:w-1\/2 { width: 50% !important; }
+  .md\:w-1\/3 { width: 33.333333% !important; }
+  .md\:w-2\/3 { width: 66.666667% !important; }
+  .md\:w-auto { width: auto !important; }
+  
+  /* Force desktop padding at ALL screen sizes */
+  .p-4 { padding: 1rem !important; }
+  .p-6 { padding: 1.5rem !important; }
+  .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .py-6 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+  
+  /* Force desktop gaps at ALL screen sizes */
+  .gap-1 { gap: 0.25rem !important; }
+  .gap-2 { gap: 0.5rem !important; }
+  .gap-3 { gap: 0.75rem !important; }
+  .gap-4 { gap: 1rem !important; }
+  .gap-6 { gap: 1.5rem !important; }
+  
+  /* Force desktop margins at ALL screen sizes */
+  .mb-2 { margin-bottom: 0.5rem !important; }
+  .mb-4 { margin-bottom: 1rem !important; }
+  .mb-6 { margin-bottom: 1.5rem !important; }
+  .mt-4 { margin-top: 1rem !important; }
+  .mt-6 { margin-top: 1.5rem !important; }
+  
+  /* Fix inputs - FORCE BLACK TEXT */
+  input,
+  textarea,
+  select,
+  .Input {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder,
+  .Input::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #6b7280 !important;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus,
+  .Input:focus {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+  
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: #000000 !important;
+    color: #000000 !important;
+  }
+  
+  /* Fix for admin sidebar - ensure it's always visible */
+  aside {
+    min-width: 16rem !important; /* md:w-64 = 16rem */
+  }
+  
+  /* Fix for tables - prevent responsive collapse */
+  table {
+    min-width: 100% !important;
+    display: table !important; /* Not block */
+  }
+  
+  /* CRITICAL: Disable ALL media queries that would make things responsive */
+  @media (max-width: 768px) {
+    /* Force desktop layout even on small screens */
+    html, body {
+      min-width: 1280px !important;
+    }
+    
+    /* Keep sidebar visible */
+    aside {
+      display: block !important;
+      min-width: 16rem !important;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    /* Force desktop layout even on tiny screens */
+    html, body {
+      min-width: 1280px !important;
+    }
+  }

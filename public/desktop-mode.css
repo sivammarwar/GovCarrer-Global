@@ -1,0 +1,239 @@
+/* FIXED DESKTOP VIEW - Force desktop layout on all devices, no responsive behavior */
+
+/* Enforce minimum desktop width - prevent any shrinking */
+html {
+    min-width: 1280px !important;
+    overflow-x: auto !important; /* Allow horizontal scroll if needed */
+  }
+  
+  body {
+    min-width: 1280px !important;
+    overflow-x: auto !important;
+  }
+  
+  #root {
+    min-width: 1280px !important;
+  }
+  
+  /* Force containers to desktop width */
+  .container,
+  .portal-container {
+    min-width: 1280px !important;
+  }
+  
+  /* DISABLE ALL RESPONSIVE BEHAVIOR */
+  /* Override any media queries by forcing desktop values at all screen sizes */
+  
+  /* Force desktop text sizes at ALL screen sizes */
+  .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+  .text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  .text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+  .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+  .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  .text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  .text-3xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+  .text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+  .text-5xl { font-size: 3rem !important; line-height: 1 !important; }
+  .text-6xl { font-size: 3.75rem !important; line-height: 1 !important; }
+  .text-7xl { font-size: 4.5rem !important; line-height: 1 !important; }
+  .text-8xl { font-size: 6rem !important; line-height: 1 !important; }
+  
+  .sm\:text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+  .sm\:text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+  .sm\:text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+  .sm\:text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+  .sm\:text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  .sm\:text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  .sm\:text-3xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+  .sm\:text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+  .sm\:text-5xl { font-size: 3rem !important; line-height: 1 !important; }
+  .sm\:text-7xl { font-size: 4.5rem !important; line-height: 1 !important; }
+  
+  .md\:text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+  .md\:text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+  .md\:text-3xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+  .md\:text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+  .md\:text-5xl { font-size: 3rem !important; line-height: 1 !important; }
+  .md\:text-8xl { font-size: 6rem !important; line-height: 1 !important; }
+  
+  /* Force desktop grid layouts at ALL screen sizes */
+  .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  
+  /* Force desktop padding at ALL screen sizes */
+  .p-3 { padding: 0.75rem !important; }
+  .p-4 { padding: 1rem !important; }
+  .p-5 { padding: 1.25rem !important; }
+  .p-6 { padding: 1.5rem !important; }
+  .p-8 { padding: 2rem !important; }
+  .p-10 { padding: 2.5rem !important; }
+  .p-12 { padding: 3rem !important; }
+  
+  .sm\:p-4 { padding: 1rem !important; }
+  .sm\:p-5 { padding: 1.25rem !important; }
+  .sm\:p-6 { padding: 1.5rem !important; }
+  .sm\:p-10 { padding: 2.5rem !important; }
+  .sm\:p-12 { padding: 3rem !important; }
+  
+  .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  
+  .sm\:px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .sm\:px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  
+  .lg\:px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
+  
+  .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .py-6 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+  .py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+  .py-10 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+  .py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+  .py-16 { padding-top: 4rem !important; padding-bottom: 4rem !important; }
+  
+  .sm\:py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .sm\:py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+  .sm\:py-10 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+  .sm\:py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+  .sm\:py-16 { padding-top: 4rem !important; padding-bottom: 4rem !important; }
+  
+  /* Force desktop margins at ALL screen sizes */
+  .mb-4 { margin-bottom: 1rem !important; }
+  .mb-5 { margin-bottom: 1.25rem !important; }
+  .mb-6 { margin-bottom: 1.5rem !important; }
+  .mb-8 { margin-bottom: 2rem !important; }
+  .mb-10 { margin-bottom: 2.5rem !important; }
+  .mb-12 { margin-bottom: 3rem !important; }
+  
+  .sm\:mb-4 { margin-bottom: 1rem !important; }
+  .sm\:mb-8 { margin-bottom: 2rem !important; }
+  .sm\:mb-10 { margin-bottom: 2.5rem !important; }
+  .sm\:mb-12 { margin-bottom: 3rem !important; }
+  
+  /* Force desktop gaps at ALL screen sizes */
+  .gap-2 { gap: 0.5rem !important; }
+  .gap-3 { gap: 0.75rem !important; }
+  .gap-4 { gap: 1rem !important; }
+  .gap-5 { gap: 1.25rem !important; }
+  .gap-6 { gap: 1.5rem !important; }
+  
+  .sm\:gap-4 { gap: 1rem !important; }
+  .sm\:gap-5 { gap: 1.25rem !important; }
+  .sm\:gap-6 { gap: 1.5rem !important; }
+  
+  /* Force desktop widths at ALL screen sizes */
+  .w-5 { width: 1.25rem !important; }
+  .w-6 { width: 1.5rem !important; }
+  .w-7 { width: 1.75rem !important; }
+  .w-8 { width: 2rem !important; }
+  
+  .sm\:w-6 { width: 1.5rem !important; }
+  
+  /* Force desktop heights at ALL screen sizes */
+  .h-5 { height: 1.25rem !important; }
+  .h-6 { height: 1.5rem !important; }
+  .h-7 { height: 1.75rem !important; }
+  .h-12 { height: 3rem !important; }
+  
+  .sm\:h-6 { height: 1.5rem !important; }
+  .sm\:h-7 { height: 1.75rem !important; }
+  
+  /* Force desktop min heights at ALL screen sizes */
+  .min-h-\[120px\] { min-height: 120px !important; }
+  .min-h-\[140px\] { min-height: 140px !important; }
+  
+  .sm\:min-h-\[140px\] { min-height: 140px !important; }
+  
+  /* Force desktop flex direction at ALL screen sizes */
+  .flex-col { flex-direction: column !important; }
+  .flex-row { flex-direction: row !important; }
+  
+  .sm\:flex-row { flex-direction: row !important; }
+  .md\:flex-row { flex-direction: row !important; }
+  
+  .sm\:flex-col { flex-direction: column !important; }
+  
+  /* Force desktop display at ALL screen sizes */
+  .block { display: block !important; }
+  .hidden { display: none !important; }
+  .inline { display: inline !important; }
+  .inline-flex { display: inline-flex !important; }
+  
+  .md\:block { display: block !important; }
+  .lg\:block { display: block !important; }
+  
+  .hidden.md\:block { display: block !important; }
+  .hidden.lg\:block { display: block !important; }
+  .hidden.sm\:inline { display: inline !important; }
+  
+  /* Force desktop spacing at ALL screen sizes */
+  .sm\:space-y-4 > * + * { margin-top: 1rem !important; }
+  
+  /* Fix inputs - FORCE BLACK TEXT */
+  input,
+  .Input,
+  input[type="text"],
+  input[type="search"],
+  textarea,
+  select {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+  
+  input::placeholder,
+  .Input::placeholder,
+  textarea::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #6b7280 !important;
+  }
+  
+  input:focus,
+  .Input:focus,
+  textarea:focus,
+  select:focus {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+  
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: #000000 !important;
+    color: #000000 !important;
+  }
+  
+  /* CRITICAL: Disable ALL media queries that would make things responsive */
+  /* This ensures desktop layout is maintained regardless of screen size */
+  @media screen {
+    /* Keep everything as desktop values */
+    * {
+      /* Prevent any responsive shrinking */
+      min-width: auto !important;
+    }
+  }
+  
+  /* Ensure the page doesn't try to be "mobile-friendly" */
+  @media (max-width: 768px) {
+    /* Force desktop layout even on small screens */
+    html, body {
+      min-width: 1280px !important;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    /* Force desktop layout even on tiny screens */
+    html, body {
+      min-width: 1280px !important;
+    }
+  }

@@ -1,0 +1,202 @@
+/* Timeline Roadmap - Minimal Clean Design */
+
+.timeline-container {
+  position: relative;
+  padding-left: 56px;
+  padding-top: 8px;
+  padding-bottom: 16px;
+}
+
+/* Single thin vertical line - make it more visible */
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #94a3b8;
+}
+
+/* Date group container */
+.timeline-group {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.timeline-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Date circle sitting centered on the line */
+.timeline-date-circle {
+  position: absolute;
+  left: -58px;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #1e3a7a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Month on top - 9px bold uppercase */
+.date-month {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+/* Day below - 14px bold */
+.date-day {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* TBA circle style */
+.timeline-date-circle.tba {
+  background: #94a3b8;
+}
+
+/* Items container - indented to the right with more padding */
+.timeline-items {
+  padding-left: 72px;
+  padding-top: 4px;
+}
+
+/* Individual item - clean minimal */
+.timeline-item {
+  display: block;
+  margin-bottom: 10px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Item name - blue link with underline */
+.timeline-item-title {
+  font-size: clamp(13px, 1.1vw, 15px);
+  font-weight: 500;
+  color: #1d4ed8;
+  text-decoration: none;
+  line-height: 1.4;
+  display: block;
+  cursor: pointer;
+  border-bottom: 1px solid #bfdbfe;
+  padding-bottom: 2px;
+}
+
+.timeline-item-title:hover {
+  color: #1e40af;
+  border-bottom-color: #1d4ed8;
+}
+
+/* Item subtitle - muted grey */
+.timeline-item-subtitle {
+  font-size: clamp(11px, 0.95vw, 13px);
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Sort toggle button */
+.timeline-sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.timeline-sort-toggle:hover {
+  color: #374151;
+}
+
+/* Section header with sort toggle */
+.timeline-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.timeline-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Empty state */
+.timeline-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Loading state */
+.timeline-loading {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+  .timeline-container {
+    padding-left: 48px;
+  }
+  
+  .timeline-container::before {
+    left: 16px;
+  }
+  
+  .timeline-date-circle {
+    width: 40px;
+    height: 40px;
+    left: -48px;
+  }
+  
+  .date-month {
+    font-size: 8px;
+  }
+  
+  .date-day {
+    font-size: 12px;
+  }
+  
+  .timeline-items {
+    padding-left: 52px;
+  }
+  
+  .timeline-group {
+    margin-bottom: 24px;
+  }
+}
