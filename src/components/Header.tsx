@@ -250,34 +250,67 @@ export const Header = ({ country, onChangeCountry }: HeaderProps) => {
         </div>
       </div>
 
-      {/* WhatsApp Channel Banner */}
-      <a
-        href="https://whatsapp.com/channel/0029Vb6zQ8X5fM5YiaF55r42"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          padding: '10px 16px',
-          background: '#25D366',
-          color: 'white',
-          textDecoration: 'none',
-          fontWeight: 600,
-          fontSize: 14,
-          transition: 'background 0.15s',
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.background = '#128C7E';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.background = '#25D366';
-        }}
-      >
-        <WhatsAppIcon />
-        <span>Join our WhatsApp Channel for Latest Updates</span>
-      </a>
+      {/* WhatsApp & Telegram Channel Banners */}
+      <div style={{ display: 'flex', width: '100%' }}>
+        <a
+          href="https://whatsapp.com/channel/0029Vb6zQ8X5fM5YiaF55r42"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '10px 8px',
+            background: '#25D366',
+            color: 'white',
+            textDecoration: 'none',
+            fontWeight: 600,
+            fontSize: 12,
+            flex: 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = '#128C7E';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = '#25D366';
+          }}
+        >
+          <WhatsAppIcon />
+          <span>WhatsApp Channel</span>
+        </a>
+        <a
+          href="https://t.me/kvresult"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '10px 8px',
+            background: '#0088cc',
+            color: 'white',
+            textDecoration: 'none',
+            fontWeight: 600,
+            fontSize: 12,
+            flex: 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = '#006699';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = '#0088cc';
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+          </svg>
+          <span>Telegram Channel</span>
+        </a>
+      </div>
     </header>
   );
 };
