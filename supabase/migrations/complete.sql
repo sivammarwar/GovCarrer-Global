@@ -6229,3 +6229,263 @@ CREATE POLICY "Admins can insert dynamic section items"
   ON public.dynamic_section_items FOR INSERT
   TO authenticated
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+-- ============================================================
+-- DYNAMIC SECTIONS SCHEMA FIX
+-- Safe to run on existing databases (idempotent)
+-- ============================================================
+
+-- STEP 1: Ensure dynamic_sections has ALL required columns
+-- ============================================================
+ALTER TABLE public.dynamic_sections
+  ADD COLUMN IF NOT EXISTS name            TEXT          NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS slug            TEXT          NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS description     TEXT,
+  ADD COLUMN IF NOT EXISTS icon            TEXT          DEFAULT 'FileText',
+  ADD COLUMN IF NOT EXISTS color           TEXT          DEFAULT 'blue',
+  ADD COLUMN IF NOT EXISTS display_order   INTEGER       DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tab_order       INTEGER       DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS is_active       BOOLEAN       DEFAULT true,
+  ADD COLUMN IF NOT EXISTS show_in_tabs    BOOLEAN       DEFAULT true,
+  ADD COLUMN IF NOT EXISTS show_in_timeline BOOLEAN      DEFAULT true,
+  ADD COLUMN IF NOT EXISTS ai_prompt       TEXT,
+  ADD COLUMN IF NOT EXISTS section_type    TEXT,          -- kept for backward compat
+  ADD COLUMN IF NOT EXISTS created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at      TIMESTAMP WITH TIME ZONE DEFAULT now();
+
+-- STEP 2: Ensure dynamic_section_items has ALL required columns
+-- ============================================================
+ALTER TABLE public.dynamic_section_items
+  ADD COLUMN IF NOT EXISTS section_id              UUID REFERENCES public.dynamic_sections(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS country_id              UUID REFERENCES public.countries(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS title                   TEXT          NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS subtitle                TEXT,
+  ADD COLUMN IF NOT EXISTS description             TEXT,
+  ADD COLUMN IF NOT EXISTS date_value              DATE,
+  ADD COLUMN IF NOT EXISTS slug                    TEXT,
+  ADD COLUMN IF NOT EXISTS link_url                TEXT,
+  ADD COLUMN IF NOT EXISTS link_text               TEXT,
+  ADD COLUMN IF NOT EXISTS thumbnail_url           TEXT,
+  ADD COLUMN IF NOT EXISTS badge_text              TEXT,
+  ADD COLUMN IF NOT EXISTS badge_color             TEXT          DEFAULT 'blue',
+  ADD COLUMN IF NOT EXISTS form_data               JSONB         DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS meta_title              TEXT,
+  ADD COLUMN IF NOT EXISTS meta_description        TEXT,
+  ADD COLUMN IF NOT EXISTS meta_keywords           TEXT,
+  ADD COLUMN IF NOT EXISTS page_content            TEXT,
+  ADD COLUMN IF NOT EXISTS ai_content_generated    BOOLEAN       DEFAULT false,
+  ADD COLUMN IF NOT EXISTS content_generated_at    TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS tags                    TEXT[],
+  ADD COLUMN IF NOT EXISTS is_pinned               BOOLEAN       DEFAULT false,
+  ADD COLUMN IF NOT EXISTS is_active               BOOLEAN       DEFAULT true,
+  ADD COLUMN IF NOT EXISTS display_order           INTEGER       DEFAULT 0,
+  -- Extra fields for typed content (exam, job, result, etc.)
+  ADD COLUMN IF NOT EXISTS conducting_body         TEXT,
+  ADD COLUMN IF NOT EXISTS exam_date               TEXT,
+  ADD COLUMN IF NOT EXISTS notification_date       DATE,
+  ADD COLUMN IF NOT EXISTS admit_card_link         TEXT,
+  ADD COLUMN IF NOT EXISTS result_link             TEXT,
+  ADD COLUMN IF NOT EXISTS syllabus_link           TEXT,
+  ADD COLUMN IF NOT EXISTS answer_key_link         TEXT,
+  ADD COLUMN IF NOT EXISTS objection_link          TEXT,
+  ADD COLUMN IF NOT EXISTS objection_deadline      DATE,
+  ADD COLUMN IF NOT EXISTS official_link           TEXT,
+  ADD COLUMN IF NOT EXISTS official_notification   TEXT,
+  ADD COLUMN IF NOT EXISTS apply_link              TEXT,
+  ADD COLUMN IF NOT EXISTS location                TEXT,
+  ADD COLUMN IF NOT EXISTS vacancies               TEXT,
+  ADD COLUMN IF NOT EXISTS salary_range            TEXT,
+  ADD COLUMN IF NOT EXISTS qualification           TEXT,
+  ADD COLUMN IF NOT EXISTS age_limit               TEXT,
+  ADD COLUMN IF NOT EXISTS category                TEXT,
+  ADD COLUMN IF NOT EXISTS post_name               TEXT,
+  ADD COLUMN IF NOT EXISTS release_date            DATE,
+  ADD COLUMN IF NOT EXISTS ai_prompt               TEXT,
+  ADD COLUMN IF NOT EXISTS created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at              TIMESTAMP WITH TIME ZONE DEFAULT now();
+
+-- STEP 3: Indexes
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_dynamic_sections_slug          ON public.dynamic_sections(slug);
+CREATE INDEX IF NOT EXISTS idx_dynamic_sections_active        ON public.dynamic_sections(is_active);
+CREATE INDEX IF NOT EXISTS idx_dynamic_sections_tab_order     ON public.dynamic_sections(tab_order);
+CREATE INDEX IF NOT EXISTS idx_dynamic_sections_display_order ON public.dynamic_sections(display_order);
+
+CREATE INDEX IF NOT EXISTS idx_dsi_section_id    ON public.dynamic_section_items(section_id);
+CREATE INDEX IF NOT EXISTS idx_dsi_country_id    ON public.dynamic_section_items(country_id);
+CREATE INDEX IF NOT EXISTS idx_dsi_active        ON public.dynamic_section_items(is_active);
+CREATE INDEX IF NOT EXISTS idx_dsi_slug          ON public.dynamic_section_items(slug);
+CREATE INDEX IF NOT EXISTS idx_dsi_is_pinned     ON public.dynamic_section_items(is_pinned);
+CREATE INDEX IF NOT EXISTS idx_dsi_date_value    ON public.dynamic_section_items(date_value);
+CREATE INDEX IF NOT EXISTS idx_dsi_display_order ON public.dynamic_section_items(display_order);
+CREATE INDEX IF NOT EXISTS idx_dsi_ai_generated  ON public.dynamic_section_items(ai_content_generated);
+
+-- STEP 4: Drop ALL orphaned/conflicting triggers on both tables
+-- ============================================================
+DROP TRIGGER IF EXISTS update_dynamic_sections_updated_at      ON public.dynamic_sections;
+DROP TRIGGER IF EXISTS update_dynamic_section_items_updated_at ON public.dynamic_section_items;
+DROP TRIGGER IF EXISTS auto_slug_dynamic_section_items         ON public.dynamic_section_items;
+DROP TRIGGER IF EXISTS auto_generate_famous_exam_seo           ON public.dynamic_section_items;
+DROP TRIGGER IF EXISTS mark_exam_for_ai_regen                  ON public.dynamic_section_items;
+
+-- STEP 5: Recreate clean triggers
+-- ============================================================
+CREATE TRIGGER update_dynamic_sections_updated_at
+  BEFORE UPDATE ON public.dynamic_sections
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_dynamic_section_items_updated_at
+  BEFORE UPDATE ON public.dynamic_section_items
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Fast slug trigger (no blocking uniqueness loop — avoids hanging inserts)
+CREATE OR REPLACE FUNCTION auto_slug_dynamic_section_item()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.slug IS NULL OR NEW.slug = '' THEN
+    NEW.slug :=
+      lower(regexp_replace(regexp_replace(NEW.title, '[^a-zA-Z0-9\s-]', '', 'g'), '\s+', '-', 'g'))
+      || '-' || substr(md5(gen_random_uuid()::text), 1, 8);
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER auto_slug_dynamic_section_items
+  BEFORE INSERT ON public.dynamic_section_items
+  FOR EACH ROW EXECUTE FUNCTION auto_slug_dynamic_section_item();
+
+-- STEP 6: Enable RLS on both tables
+-- ============================================================
+ALTER TABLE public.dynamic_sections      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dynamic_section_items ENABLE ROW LEVEL SECURITY;
+
+-- STEP 7: Drop ALL existing policies (clean slate)
+-- ============================================================
+DROP POLICY IF EXISTS "Anyone can view active sections"              ON public.dynamic_sections;
+DROP POLICY IF EXISTS "Admins can view all sections"                 ON public.dynamic_sections;
+DROP POLICY IF EXISTS "Admins can insert sections"                   ON public.dynamic_sections;
+DROP POLICY IF EXISTS "Admins can update sections"                   ON public.dynamic_sections;
+DROP POLICY IF EXISTS "Admins can delete sections"                   ON public.dynamic_sections;
+DROP POLICY IF EXISTS "Admin can manage sections"                    ON public.dynamic_sections;
+
+DROP POLICY IF EXISTS "Anyone can view active section items"         ON public.dynamic_section_items;
+DROP POLICY IF EXISTS "Admins can view all section items"            ON public.dynamic_section_items;
+DROP POLICY IF EXISTS "Admins can insert dynamic section items"      ON public.dynamic_section_items;
+DROP POLICY IF EXISTS "Admins can update section items"              ON public.dynamic_section_items;
+DROP POLICY IF EXISTS "Admins can delete section items"              ON public.dynamic_section_items;
+DROP POLICY IF EXISTS "Admin can manage section items"               ON public.dynamic_section_items;
+
+-- STEP 8: Recreate complete, correct RLS policies
+-- ============================================================
+
+-- dynamic_sections
+CREATE POLICY "public_read_active_sections"
+  ON public.dynamic_sections FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "admin_read_all_sections"
+  ON public.dynamic_sections FOR SELECT
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_insert_sections"
+  ON public.dynamic_sections FOR INSERT
+  TO authenticated
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_update_sections"
+  ON public.dynamic_sections FOR UPDATE
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_delete_sections"
+  ON public.dynamic_sections FOR DELETE
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- dynamic_section_items
+CREATE POLICY "public_read_active_section_items"
+  ON public.dynamic_section_items FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "admin_read_all_section_items"
+  ON public.dynamic_section_items FOR SELECT
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_insert_section_items"
+  ON public.dynamic_section_items FOR INSERT
+  TO authenticated
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_update_section_items"
+  ON public.dynamic_section_items FOR UPDATE
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "admin_delete_section_items"
+  ON public.dynamic_section_items FOR DELETE
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- STEP 9: Backfill missing slugs on existing items
+-- ============================================================
+UPDATE public.dynamic_section_items
+SET slug =
+  lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9\s-]', '', 'g'), '\s+', '-', 'g'))
+  || '-' || substr(md5(id::text), 1, 8)
+WHERE slug IS NULL OR slug = '';
+
+-- STEP 10: Add realtime (safe if already added)
+-- ============================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'dynamic_sections'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.dynamic_sections;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'dynamic_section_items'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.dynamic_section_items;
+  END IF;
+END $$;
+
+-- STEP 11: Reload PostgREST schema cache (fixes PGRST204 errors)
+-- ============================================================
+NOTIFY pgrst, 'reload schema';
+
+-- STEP 12: Verification
+-- ============================================================
+SELECT
+  table_name,
+  COUNT(*) as column_count
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name IN ('dynamic_sections', 'dynamic_section_items')
+GROUP BY table_name;
+
+SELECT
+  trigger_name,
+  event_object_table,
+  event_manipulation
+FROM information_schema.triggers
+WHERE event_object_schema = 'public'
+  AND event_object_table IN ('dynamic_sections', 'dynamic_section_items')
+ORDER BY event_object_table, trigger_name;
+
+SELECT
+  policyname,
+  tablename,
+  cmd
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('dynamic_sections', 'dynamic_section_items')
+ORDER BY tablename, cmd;
+
+SELECT '✅ dynamic_sections fix complete!' AS status;
