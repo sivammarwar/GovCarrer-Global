@@ -148,6 +148,7 @@ export const AdminSectionManager = () => {
         is_active: formData.is_active,
         show_in_timeline: formData.show_in_timeline,
         show_in_tabs: formData.show_in_tabs,
+        section_type: formData.slug.trim(),
         // ai_prompt is saved here and later injected into buildContentPrompt()
         // when generating item pages for this section
         ai_prompt: formData.ai_prompt?.trim() || null,
