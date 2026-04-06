@@ -6489,3 +6489,9 @@ WHERE schemaname = 'public'
 ORDER BY tablename, cmd;
 
 SELECT '✅ dynamic_sections fix complete!' AS status;
+
+
+DROP TABLE IF EXISTS public.results CASCADE;
+DROP TABLE IF EXISTS public.answer_keys CASCADE;
+DROP TABLE IF EXISTS public.exam_listings CASCADE;
+DROP TABLE IF EXISTS public.job_listings CASCADE;
