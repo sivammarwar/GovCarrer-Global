@@ -90,8 +90,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   // Calculate total SEO pages from actual stats
   const totalSEOPages = stats 
-    ? (stats.exams || 0) + (stats.jobs || 0) + (stats.results || 0) + 
-      (stats.answerKeys || 0) + (stats.famousExams || 0)
+    ? (stats.exams || 0) + (stats.famousExams || 0) + (stats.answerKeys || 0)
     : 0;
 
   return (
