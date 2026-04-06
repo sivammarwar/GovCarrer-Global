@@ -131,7 +131,7 @@ function DocumentsSection({ section }: { section: FormSection }) {
     <ul className="space-y-1.5">
       {section.rows.map((row) => {
         const doc       = getCellText(row.cells[0] ?? "");
-        const spec      = getCellText(row.cells[1] ?? "");
+        // cells[1] = Specification — hidden per requirement
         const mandatory = getCellText(row.cells[2] ?? "");
         if (!doc) return null;
         const isMandatory = mandatory.toLowerCase().includes("mandatory") || mandatory.toLowerCase() === "yes";
@@ -140,7 +140,6 @@ function DocumentsSection({ section }: { section: FormSection }) {
             <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${isMandatory ? "text-rose-500" : "text-slate-400"}`} />
             <div className="flex-1 min-w-0">
               <span className="text-[11px] font-medium text-slate-800">{doc}</span>
-              {spec && <span className="text-[11px] text-slate-500"> — {spec}</span>}
             </div>
             {mandatory && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${isMandatory ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-600"}`}>
@@ -205,14 +204,31 @@ function GenericSection({ section }: { section: FormSection }) {
   );
 }
 
+// Sections where we strip specific columns before rendering:
+// - Eligibility Criteria: hide col 2 (Details)
+// - Application Fee: hide col 2 (Payment Mode)
+// - Selection Process: hide col 2 (Weightage)
+// Strategy: pass a trimmed copy of the section with only the columns/cells we want shown.
+function trimToTwoCols(section: FormSection): FormSection {
+  return {
+    ...section,
+    columns: section.columns.slice(0, 2),
+    rows: section.rows.map((row) => ({ ...row, cells: row.cells.slice(0, 2) })),
+  };
+}
+
 function SectionBody({ section }: { section: FormSection }) {
   switch (section.title) {
-    case "Important Dates":    return <DatesSection section={section} />;
-    case "Important Links":    return <LinksSection section={section} />;
-    case "How to Apply":       return <StepsSection section={section} />;
-    case "FAQs":               return <FAQSection section={section} />;
-    case "Documents Required": return <DocumentsSection section={section} />;
-    default:                   return <GenericSection section={section} />;
+    case "Important Dates":      return <DatesSection section={section} />;
+    case "Important Links":      return <LinksSection section={section} />;
+    case "How to Apply":         return <StepsSection section={section} />;
+    case "FAQs":                 return <FAQSection section={section} />;
+    case "Documents Required":   return <DocumentsSection section={section} />;
+    // Hide the 3rd column for these three sections
+    case "Eligibility Criteria":
+    case "Application Fee":
+    case "Selection Process":    return <GenericSection section={trimToTwoCols(section)} />;
+    default:                     return <GenericSection section={section} />;
   }
 }
 
