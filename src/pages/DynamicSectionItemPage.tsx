@@ -122,6 +122,7 @@ export const DynamicSectionItemPage = () => {
   const title = item.meta_title || item.title;
   const description = item.meta_description || item.description || "";
   const keywords = item.meta_keywords || "";
+  const canonicalUrl = `https://www.kvresults.com/section/${sectionSlug}/${itemSlug}`;
 
   const colorMap: Record<string, string> = {
     red: "#dc2626",
@@ -144,7 +145,9 @@ export const DynamicSectionItemPage = () => {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
-        <link rel="canonical" href={`${window.location.origin}/section/${sectionSlug}/${itemSlug}`} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="KV Results" />
+        <link rel="canonical" href={canonicalUrl} />
       </Helmet>
 
       {/* Header */}
