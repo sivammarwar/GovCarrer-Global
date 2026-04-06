@@ -10,12 +10,10 @@ interface FormCell {
   linkUrl?: string;
 }
 
-// Helper to get cell text
 const getCellText = (cell: string | FormCell): string => {
   return typeof cell === "string" ? cell : cell.text;
 };
 
-// Helper to get cell link
 const getCellLink = (cell: string | FormCell): string | undefined => {
   return typeof cell === "string" ? undefined : cell.linkUrl;
 };
@@ -38,8 +36,7 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
     try {
       const element = contentRef.current;
 
-      // --- FIX: Temporarily expand element to its full scrollable width so the
-      //     canvas captures ALL content, not just the visible viewport slice. ---
+      // Temporarily expand to full content width so canvas captures everything
       const originalStyle = {
         width: element.style.width,
         maxWidth: element.style.maxWidth,
@@ -47,13 +44,11 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
         position: element.style.position,
       };
 
-      // Remove width constraint so every table column is visible
       element.style.width = "auto";
       element.style.maxWidth = "none";
       element.style.overflow = "visible";
       element.style.position = "relative";
 
-      // Also fix inner tables temporarily
       const tables = element.querySelectorAll<HTMLElement>("table");
       const tableOriginals: { el: HTMLElement; style: string }[] = [];
       tables.forEach((t) => {
@@ -69,7 +64,6 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
         logging: false,
         backgroundColor: "#ffffff",
         imageTimeout: 0,
-        // Capture the full scrollable area
         width: element.scrollWidth,
         height: element.scrollHeight,
         windowWidth: element.scrollWidth,
@@ -84,11 +78,9 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
       tableOriginals.forEach(({ el, style }) => (el.style.cssText = style));
 
       const imgData = canvas.toDataURL("image/jpeg", 0.85);
-
       const pdf = new jsPDF("p", "mm", "a4", true);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-
       const ratio = pdfWidth / canvas.width;
       const scaledHeight = canvas.height * ratio;
 
@@ -117,48 +109,41 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
   };
 
   return (
-    <div className="space-y-6 text-foreground">
+    <div className="space-y-3 text-foreground">
       {/* Download Button */}
       <div className="flex justify-end">
         <Button
           onClick={handleDownload}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-xs h-7 px-3"
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-3 h-3" />
           Download as PDF
         </Button>
       </div>
 
-      {/* Rendered Content — ref wraps only the printable area */}
-      <div ref={contentRef} className="space-y-10 bg-white">
+      {/* Printable content */}
+      <div ref={contentRef} className="space-y-4 bg-white">
         {title && (
-          <h1 className="text-2xl font-bold text-slate-900 border-b-2 border-primary pb-3">
+          <h1 className="text-sm font-bold text-slate-900 border-b border-primary pb-1">
             {title}
           </h1>
         )}
 
         {sections.map((section) => (
-          <div key={section.id} className="space-y-3">
-            {/* Section heading — looks like a page heading, not a form label */}
-            <h2 className="text-base font-semibold text-slate-800 uppercase tracking-wide text-primary">
+          <div key={section.id} className="space-y-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-primary">
               {section.title}
             </h2>
 
-            {/* 
-              FIX: Remove overflow-x-auto wrapper.
-              Use w-full + table-fixed + break-words so the table
-              stays within the page width on all screen sizes.
-            */}
-            <div className="rounded-lg border border-slate-200 w-full">
-              <table className="w-full text-sm table-fixed">
+            <div className="rounded border border-slate-200 w-full">
+              <table className="w-full text-xs table-fixed">
                 <thead className="bg-slate-50">
                   <tr>
                     {section.columns.map((col, idx) => (
                       <th
                         key={idx}
-                        className="px-4 py-3 text-left font-semibold text-slate-600 border-b border-slate-200 break-words"
-                        // Distribute columns evenly; first col slightly wider for label tables
+                        className="px-2 py-1.5 text-left font-semibold text-slate-600 border-b border-slate-200 break-words"
                         style={{
                           width:
                             section.columns.length === 2 && idx === 0
@@ -176,7 +161,7 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
                     <tr>
                       <td
                         colSpan={section.columns.length}
-                        className="px-4 py-8 text-center text-slate-400 italic"
+                        className="px-2 py-3 text-center text-slate-400 italic"
                       >
                         No data available
                       </td>
@@ -190,7 +175,7 @@ export function FormContentRenderer({ sections, title }: FormContentRendererProp
                           return (
                             <td
                               key={idx}
-                              className="px-4 py-3 text-slate-700 break-words align-top"
+                              className="px-2 py-1.5 text-slate-700 break-words align-top"
                             >
                               {link ? (
                                 <a
