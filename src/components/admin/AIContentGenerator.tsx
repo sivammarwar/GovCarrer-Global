@@ -199,6 +199,18 @@ function StreamingInput({
 }
 
 // ─────────────────────────────────────────────────────
+// Locked cells config — these columns are hidden on the
+// public page and must stay empty/null in the admin form.
+// ─────────────────────────────────────────────────────
+const LOCKED_CELLS: Record<string, number[]> = {
+  "Eligibility Criteria": [2], // Details
+  "Application Fee":      [2], // Payment Mode
+  "Selection Process":    [2], // Weightage
+  "Documents Required":   [1], // Specification
+  "FAQs":                 [2], // Category
+};
+
+// ─────────────────────────────────────────────────────
 // Fixed Form Builder — predefined sections with fixed columns
 // ─────────────────────────────────────────────────────
 interface FormBuilderProps {
@@ -253,7 +265,6 @@ const DEFAULT_SECTIONS: Omit<FormSection, "id" | "order">[] = [
 // Initialize sections with IDs if empty
 function initializeSections(existingSections: FormSection[] | undefined): FormSection[] {
   if (existingSections && existingSections.length > 0) {
-    // If we have existing data, use it but ensure all default sections exist
     const existingMap = new Map(existingSections.map(s => [s.title, s]));
     return DEFAULT_SECTIONS.map((defaultSec, index) => {
       const existing = existingMap.get(defaultSec.title);
@@ -266,7 +277,6 @@ function initializeSections(existingSections: FormSection[] | undefined): FormSe
       };
     });
   }
-  // Create fresh sections with IDs
   return DEFAULT_SECTIONS.map((sec, index) => ({
     id: crypto.randomUUID(),
     ...sec,
@@ -275,9 +285,8 @@ function initializeSections(existingSections: FormSection[] | undefined): FormSe
 }
 
 function FormBuilder({ sections, onChange }: FormBuilderProps) {
-  // Initialize on first render if empty
   const [initialized, setInitialized] = useState(false);
-  
+
   useEffect(() => {
     if (!initialized && sections.length === 0) {
       onChange(initializeSections(undefined));
@@ -315,14 +324,13 @@ function FormBuilder({ sections, onChange }: FormBuilderProps) {
     if (!section) return;
     const newRows = section.rows.map((r) =>
       r.id === rowId
-        ? { 
-            ...r, 
+        ? {
+            ...r,
             cells: r.cells.map((c, i) => {
               if (i !== colIndex) return c;
-              // Convert to object format if it has a link
               const text = typeof c === 'string' ? c : c.text;
               return linkUrl ? { text, linkUrl } : text;
-            }) 
+            }),
           }
         : r
     );
@@ -389,12 +397,18 @@ function FormBuilder({ sections, onChange }: FormBuilderProps) {
             <CardContent className="space-y-3">
               {/* Column Headers (fixed, not editable) */}
               <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
-                {section.columns.map((col, colIndex) => (
-                  <div key={colIndex} className="flex-1 text-xs font-medium text-muted-foreground">
-                    {col}
-                  </div>
-                ))}
-                <div className="w-8"></div> {/* Space for delete button */}
+                {section.columns.map((col, colIndex) => {
+                  const isLocked = (LOCKED_CELLS[section.title] ?? []).includes(colIndex);
+                  return (
+                    <div key={colIndex} className={`flex-1 text-xs font-medium ${isLocked ? "text-slate-300" : "text-muted-foreground"}`}>
+                      {col}
+                      {isLocked && (
+                        <span className="ml-1 text-[9px] bg-slate-200 text-slate-400 px-1 py-0.5 rounded">hidden</span>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="w-8"></div>
               </div>
 
               {/* Rows */}
@@ -408,26 +422,51 @@ function FormBuilder({ sections, onChange }: FormBuilderProps) {
                     <div key={row.id} className="space-y-2 p-3 bg-muted/20 rounded-lg">
                       {/* Cell Inputs */}
                       <div className="flex items-start gap-2">
-                        {row.cells.map((cell, colIndex) => (
-                          <div key={colIndex} className="flex-1 space-y-1">
-                            <Input
-                              value={getCellText(cell)}
-                              onChange={(e) => updateCell(section.id, row.id, colIndex, e.target.value)}
-                              className="text-sm min-w-[80px]"
-                              placeholder={section.columns[colIndex]}
-                            />
-                            {/* Link URL input */}
-                            <div className="flex items-center gap-1">
-                              <Link className="w-3 h-3 text-muted-foreground" />
+                        {row.cells.map((cell, colIndex) => {
+                          const isLocked = (LOCKED_CELLS[section.title] ?? []).includes(colIndex);
+
+                          if (isLocked) {
+                            return (
+                              <div key={colIndex} className="flex-1 space-y-1">
+                                <div className="relative">
+                                  <Input
+                                    value=""
+                                    readOnly
+                                    disabled
+                                    className="text-sm min-w-[80px] bg-slate-100 text-slate-400 cursor-not-allowed border-dashed border-slate-300"
+                                    placeholder="Not displayed on site"
+                                  />
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-medium pointer-events-none select-none">
+                                    hidden
+                                  </span>
+                                </div>
+                                {/* Spacer to match link input height */}
+                                <div className="h-6" />
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={colIndex} className="flex-1 space-y-1">
                               <Input
-                                value={getCellLink(cell) || ""}
-                                onChange={(e) => updateCellLink(section.id, row.id, colIndex, e.target.value)}
-                                className="text-xs min-w-[60px] h-6"
-                                placeholder="URL (optional)"
+                                value={getCellText(cell)}
+                                onChange={(e) => updateCell(section.id, row.id, colIndex, e.target.value)}
+                                className="text-sm min-w-[80px]"
+                                placeholder={section.columns[colIndex]}
                               />
+                              {/* Link URL input */}
+                              <div className="flex items-center gap-1">
+                                <Link className="w-3 h-3 text-muted-foreground" />
+                                <Input
+                                  value={getCellLink(cell) || ""}
+                                  onChange={(e) => updateCellLink(section.id, row.id, colIndex, e.target.value)}
+                                  className="text-xs min-w-[60px] h-6"
+                                  placeholder="URL (optional)"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         <Button
                           type="button"
                           variant="ghost"
@@ -458,6 +497,7 @@ function FormBuilder({ sections, onChange }: FormBuilderProps) {
     </div>
   );
 }
+
 // ─────────────────────────────────────────────────────
 function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -593,25 +633,23 @@ export interface AIGeneratedSEO {
   meta_description: string;
   keywords: string;
   page_content?: string;
-  // New structured form data for manual content building
   form_data?: FormSection[];
 }
 
-// Form builder types
 export interface FormCell {
   text: string;
-  linkUrl?: string; // Optional URL to make this cell a clickable link
+  linkUrl?: string;
 }
 
 export interface FormRow {
   id: string;
-  cells: (string | FormCell)[]; // cell values - can be simple string or object with link
+  cells: (string | FormCell)[];
 }
 
 export interface FormSection {
   id: string;
   title: string;
-  columns: string[]; // column headers
+  columns: string[];
   rows: FormRow[];
   order: number;
 }
@@ -705,7 +743,6 @@ export function AIContentGenerator({
     }
   }, [externalSEO, onSEOChange]);
 
-  // Remove content streaming logic - we only generate SEO metadata now
   const handleGenerate = async () => {
     const hasName =
       formData.exam_name ||
@@ -730,16 +767,15 @@ export function AIContentGenerator({
 
     setGenerated(false);
     setMetaDone(false);
-    setContentDone(true); // Mark content as done since we don't generate it
+    setContentDone(true);
     setMetaStreaming(false);
 
     const result = await generate(
       contentType,
       formData,
-      "meta", // Only generate meta, not content
+      "meta",
       customPrompt,
 
-      // onPhaseComplete
       (completedPhase, partial) => {
         if (completedPhase === "meta" && partial.meta) {
           metaFinalSet.current = true;
@@ -759,7 +795,6 @@ export function AIContentGenerator({
         }
       },
 
-      // onStreamDelta
       (deltaPhase, _delta, accumulated) => {
         if (deltaPhase === "meta") {
           if (metaFinalSet.current) return;
@@ -801,12 +836,9 @@ export function AIContentGenerator({
     handleGenerate();
   };
 
-  // FIX 4: count only fields Grok will actually use
   const filledFields = countMeaningfulFields(formData);
-  // Only metaDone matters now
   const bothDone = metaDone;
 
-  // Form builder change handler
   const handleFormDataChange = (newFormData: FormSection[]) => {
     setSEO({ form_data: newFormData });
   };
