@@ -13,8 +13,6 @@ export default async function handler(
     return res.status(200).end();
   }
 
-  // GET  → Google, robots.txt, GitHub Actions health check
-  // POST → Admin dashboard "Regenerate" button
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Content-Type', 'application/json');
     return res.status(405).json({ error: 'Method not allowed' });
@@ -22,7 +20,7 @@ export default async function handler(
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const baseUrl = 'https://kvresults.com';
+  const baseUrl = 'https://www.kvresults.com';
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing Supabase credentials');
@@ -37,21 +35,34 @@ export default async function handler(
     console.log('🚀 Starting sitemap generation...');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch from dynamic sections and items instead of old tables
-    const [sectionsData, itemsData] = await Promise.all([
-      supabase.from('dynamic_sections').select('slug, updated_at, is_active, show_in_tabs').eq('is_active', true),
-      supabase.from('dynamic_section_items').select('slug, updated_at, ai_content_generated, section_id, sections:section_id(slug)').eq('is_active', true).not('slug', 'is', null),
+    const [sectionsData, itemsData, famousExamsData] = await Promise.all([
+      supabase
+        .from('dynamic_sections')
+        .select('slug, updated_at, is_active, show_in_tabs')
+        .eq('is_active', true),
+      supabase
+        .from('dynamic_section_items')
+        .select('slug, updated_at, ai_content_generated, section_id, sections:section_id(slug)')
+        .eq('is_active', true)
+        .not('slug', 'is', null),
+      supabase
+        .from('footer_famous_exams')
+        .select('slug, updated_at')
+        .eq('is_active', true),
     ]);
 
     if (sectionsData.error) throw new Error(`Failed to fetch sections: ${sectionsData.error.message}`);
     if (itemsData.error) throw new Error(`Failed to fetch items: ${itemsData.error.message}`);
+    if (famousExamsData.error) throw new Error(`Failed to fetch famous exams: ${famousExamsData.error.message}`);
 
     const sections = sectionsData.data || [];
     const items = itemsData.data || [];
+    const famousExams = famousExamsData.data || [];
 
     console.log('✅ Data fetched:', {
       sections: sections.length,
       items: items.length,
+      famousExams: famousExams.length,
     });
 
     const escapeXml = (str: string) =>
@@ -88,7 +99,7 @@ export default async function handler(
     addUrl(`${baseUrl}/privacy-policy`, null, 'monthly', '0.7');
     addUrl(`${baseUrl}/terms-of-service`, null, 'monthly', '0.7');
 
-    // Add dynamic section item URLs
+    // Dynamic section item URLs
     items?.forEach((item: any) => {
       if (item.slug && item.sections?.slug) {
         const priority = item.ai_content_generated ? '0.95' : '0.8';
@@ -97,16 +108,23 @@ export default async function handler(
       }
     });
 
-    // Add section listing pages
+    // Section listing pages
     sections?.forEach((section: any) => {
       if (section.show_in_tabs && section.slug) {
         addUrl(`${baseUrl}/${section.slug}`, section.updated_at, 'daily', '0.9');
       }
     });
 
+    // Famous exam detail pages
+    famousExams?.forEach((exam: any) => {
+      if (exam.slug) {
+        addUrl(`${baseUrl}/famous-exams/${exam.slug}`, exam.updated_at, 'weekly', '0.80');
+      }
+    });
+
     xml += '</urlset>';
 
-    console.log(`✅ Sitemap done — ${totalUrls} URLs, ${aiContentUrls} with AI content`);
+    console.log(`✅ Sitemap done — ${totalUrls} URLs (${aiContentUrls} with AI content, ${famousExams.length} famous exams)`);
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
