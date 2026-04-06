@@ -38,11 +38,10 @@ interface SectionItem {
   meta_description: string | null;
   meta_keywords: string | null;
   page_content: string | null;
-  form_data: FormSection[] | null; // New structured form data
+  form_data: FormSection[] | null;
   countries?: { country_name: string; flag_emoji: string | null } | null;
 }
 
-// Import FormSection from AIContentGenerator
 import type { FormSection } from "./AIContentGenerator";
 
 const BADGE_COLORS = [
@@ -54,6 +53,29 @@ const BADGE_COLORS = [
   { value: "yellow", label: "Yellow" },
   { value: "gray", label: "Gray" },
 ];
+
+const DEFAULT_FORM_DATA = {
+  country_id: "",
+  title: "",
+  subtitle: "",
+  description: "",
+  date_value: "",
+  link_url: "",
+  link_text: "",
+  badge_text: "",
+  badge_color: "blue",
+  is_pinned: false,
+  is_active: true,
+  slug: "",
+};
+
+const DEFAULT_SEO_DATA: AIGeneratedSEO = {
+  slug: "",
+  meta_title: "",
+  meta_description: "",
+  keywords: "",
+  form_data: [],
+};
 
 interface AdminSectionItemsManagerProps {
   section: DynamicSection;
@@ -69,29 +91,67 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCountry, setFilterCountry] = useState("all");
+  const [hasDraft, setHasDraft] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
-    country_id: "",
-    title: "",
-    subtitle: "",
-    description: "",
-    date_value: "",
-    link_url: "",
-    link_text: "",
-    badge_text: "",
-    badge_color: "blue",
-    is_pinned: false,
-    is_active: true,
-    slug: "",
-  });
-  const [seoData, setSeoData] = useState<AIGeneratedSEO>({
-    slug: "",
-    meta_title: "",
-    meta_description: "",
-    keywords: "",
-    form_data: [],
-  });
+  // --- localStorage key scoped to section ---
+  const draftKey = `section_item_draft_${section.id}`;
+
+  const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
+  const [seoData, setSeoData] = useState<AIGeneratedSEO>(DEFAULT_SEO_DATA);
+
+  // --- Save draft to localStorage whenever formData or seoData changes ---
+  useEffect(() => {
+    // Only persist when the dialog is open (i.e. user is actively filling the form)
+    if (!dialogOpen) return;
+    try {
+      const draft = { formData, seoData, editingItemId: editingItem?.id ?? null };
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch (e) {
+      // localStorage quota exceeded or unavailable — silently ignore
+    }
+  }, [formData, seoData, dialogOpen, editingItem, draftKey]);
+
+  // --- Check for a draft on mount and show a restore banner ---
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) setHasDraft(true);
+    } catch (e) {}
+  }, [draftKey]);
+
+  // --- Restore draft into form state and open dialog ---
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.formData) setFormData(draft.formData);
+      if (draft.seoData) setSeoData(draft.seoData);
+      // If the draft was for an existing item, we can't fully restore editing context
+      // (we'd need the full item object), so we open as a new item with pre-filled data.
+      setEditingItem(null);
+      setDialogOpen(true);
+      setHasDraft(false);
+    } catch (e) {
+      toast({ title: "Error", description: "Could not restore draft.", variant: "destructive" });
+    }
+  };
+
+  const discardDraft = () => {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch (e) {}
+    setHasDraft(false);
+  };
+
+  // --- Clear draft from localStorage on successful save or cancel ---
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch (e) {}
+    setHasDraft(false);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -108,7 +168,6 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
     if (itemsRes.error) {
       toast({ title: "Error", description: itemsRes.error.message, variant: "destructive" });
     } else {
-      // Join countries manually
       const countriesMap = new Map(countriesRes.data?.map(c => [c.id, c]) || []);
       const itemsWithCountries = (itemsRes.data || []).map(item => ({
         ...item,
@@ -145,9 +204,8 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
 
     setSubmitting(true);
     console.log("Submitting form...", { section_id: section.id, formData, seoData });
-    
+
     try {
-      // Auto-generate slug if not provided
       let finalSlug = seoData.slug?.trim();
       if (!finalSlug) {
         const currentYear = new Date().getFullYear();
@@ -173,19 +231,16 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
         meta_title: seoData.meta_title?.trim() || `${formData.title} ${currentYear} - ${section.name}`,
         meta_description: seoData.meta_description?.trim() || `Complete guide for ${formData.title} ${currentYear}.`,
         meta_keywords: seoData.keywords?.trim() || `${formData.title}, ${section.name}, ${currentYear}`,
-        page_content: null, // No longer using HTML page content
-        form_data: seoData.form_data || [], // Store structured form data
+        page_content: null,
+        form_data: seoData.form_data || [],
       };
 
       console.log("Payload:", payload);
-      console.log("form_data type:", typeof payload.form_data);
-      console.log("form_data content:", JSON.stringify(payload.form_data, null, 2));
 
-      // Helper function to add timeout to promises
       const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> => {
         return Promise.race([
           promise,
-          new Promise<T>((_, reject) => 
+          new Promise<T>((_, reject) =>
             setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
           )
         ]);
@@ -201,8 +256,6 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
         toast({ title: "Success", description: "Item updated successfully" });
       } else {
         console.log("Inserting new item...");
-        console.log("Section ID being used:", section.id);
-        console.log("Full payload:", JSON.stringify(payload, null, 2));
         const { data, error } = await withTimeout(
           supabase.from("dynamic_section_items").insert(payload).select(),
           30000,
@@ -210,18 +263,24 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
         );
         if (error) {
           console.error("Insert error:", error);
-          console.error("Error details:", JSON.stringify(error, null, 2));
           throw error;
         }
         console.log("Insert success:", data);
-        console.log("Returned data:", JSON.stringify(data, null, 2));
         toast({ title: "Success", description: "Item added successfully" });
       }
+
+      // Clear draft only after a successful DB write
+      clearDraft();
       resetForm();
       await fetchData();
     } catch (error: any) {
       console.error("Submit error:", error);
-      toast({ title: "Error", description: error.message || "Failed to save item", variant: "destructive" });
+      // Draft is intentionally NOT cleared here — user can retry without losing data
+      toast({
+        title: "Error",
+        description: `${error.message || "Failed to save item"} — your form data has been preserved. Click "Add Item" to try again.`,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -293,28 +352,11 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
 
   const resetForm = () => {
     setEditingItem(null);
-    setFormData({
-      country_id: "",
-      title: "",
-      subtitle: "",
-      description: "",
-      date_value: "",
-      link_url: "",
-      link_text: "",
-      badge_text: "",
-      badge_color: "blue",
-      is_pinned: false,
-      is_active: true,
-      slug: "",
-    });
-    setSeoData({
-      slug: "",
-      meta_title: "",
-      meta_description: "",
-      keywords: "",
-      form_data: [],
-    });
+    setFormData(DEFAULT_FORM_DATA);
+    setSeoData(DEFAULT_SEO_DATA);
     setDialogOpen(false);
+    // Note: clearDraft() is only called on SUCCESS, not here,
+    // so cancelling keeps the draft available for restore.
   };
 
   const getContentTypeFromSection = (sectionName: string): "exam" | "job" | "result" | "answer_key" | "famous_exam" => {
@@ -324,7 +366,7 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
     if (name.includes("job")) return "job";
     if (name.includes("exam")) return "exam";
     if (name.includes("famous")) return "famous_exam";
-    return "exam"; // default
+    return "exam";
   };
 
   const getColorClass = (color: string) => {
@@ -353,6 +395,23 @@ export const AdminSectionItemsManager = ({ section, onBack }: AdminSectionItemsM
 
   return (
     <div className="space-y-6">
+      {/* Draft restore banner */}
+      {hasDraft && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          <span className="flex-1">
+            📝 <strong>Unsaved draft found.</strong> You have form data from a previous session that wasn't saved to the database.
+          </span>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button size="sm" variant="outline" className="border-yellow-400 text-yellow-800 hover:bg-yellow-100" onClick={restoreDraft}>
+              Restore Draft
+            </Button>
+            <Button size="sm" variant="ghost" className="text-yellow-700 hover:bg-yellow-100" onClick={discardDraft}>
+              Discard
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">{section.name} Management</h1>
