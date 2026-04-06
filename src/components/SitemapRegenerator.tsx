@@ -24,7 +24,7 @@ export const SitemapRegenerator = () => {
   const { toast } = useToast();
 
   // Matches robots.txt and GitHub Actions health check
-  const sitemapUrl = 'https://kvresults.com/sitemap.xml';
+  const sitemapUrl = 'https://www.kvresults.com/sitemap.xml';
 
   const regenerateSitemap = async () => {
     setIsGenerating(true);
@@ -60,7 +60,7 @@ export const SitemapRegenerator = () => {
       let aiContentUrls = 0;
       for (let i = 0; i < urls.length; i++) {
         const priority = urls[i].getElementsByTagName('priority')[0]?.textContent;
-        if (priority === '0.95') aiContentUrls++;
+        if (priority === '0.95' || priority === '0.90') aiContentUrls++;
       }
 
       const regularUrls = totalUrls - aiContentUrls;
@@ -219,7 +219,7 @@ export const SitemapRegenerator = () => {
             <AlertDescription className="text-blue-800 dark:text-blue-200">
               <strong>What this does:</strong>
               <ul className="mt-2 space-y-1 text-sm">
-                <li>• Scans all active exams, jobs, results, answer keys, and famous exams</li>
+                <li>• Scans all active section items, section listings, and famous exams</li>
                 <li>• Generates dynamic XML at <code>/sitemap.xml</code> (same URL Google uses)</li>
                 <li>• Prioritizes pages with AI-generated content (priority: 0.95)</li>
                 <li>• Updates lastmod dates based on content changes</li>
@@ -241,7 +241,7 @@ export const SitemapRegenerator = () => {
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="font-bold text-foreground">1.</span>
-              <span>Click "Copy" above to copy <code>https://kvresults.com/sitemap.xml</code></span>
+              <span>Click "Copy" above to copy <code>https://www.kvresults.com/sitemap.xml</code></span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold text-foreground">2.</span>
