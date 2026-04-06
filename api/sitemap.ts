@@ -42,7 +42,7 @@ export default async function handler(
         .eq('is_active', true),
       supabase
         .from('dynamic_section_items')
-        .select('slug, updated_at, ai_content_generated, section_id, sections:section_id(slug)')
+        .select('slug, updated_at, ai_content_generated, section_id, sections:dynamic_sections!section_id(slug)')
         .eq('is_active', true)
         .not('slug', 'is', null),
       supabase
