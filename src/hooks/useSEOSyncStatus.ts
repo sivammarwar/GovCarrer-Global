@@ -37,35 +37,17 @@ export const useSEOSyncStatus = () => {
 
   const checkSyncStatus = async () => {
     try {
-      const tablesWithActive = ['exam_listings', 'job_listings', 'results', 'answer_keys'];
       let totalCount = 0;
       let aiContentCount = 0;
 
-      const results = await Promise.allSettled(
-        tablesWithActive.map(async (table) => {
-          const [totalRes, aiRes] = await Promise.all([
-            supabase.from(table).select('*', { count: 'exact', head: true }).eq('is_active', true),
-            supabase.from(table).select('*', { count: 'exact', head: true }).eq('is_active', true).eq('ai_content_generated', true),
-          ]);
-          return { total: totalRes.count || 0, ai: aiRes.count || 0 };
-        })
-      );
+      const [itemsTotal, itemsAI, famousCount] = await Promise.all([
+        supabase.from('dynamic_section_items').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('dynamic_section_items').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('ai_content_generated', true),
+        supabase.from('footer_famous_exams').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      ]);
 
-      results.forEach((r) => {
-        if (r.status === 'fulfilled') {
-          totalCount += r.value.total;
-          aiContentCount += r.value.ai;
-        }
-      });
-
-      try {
-        const { count: famousCount } = await supabase
-          .from('footer_famous_exams')
-          .select('*', { count: 'exact', head: true });
-        totalCount += famousCount || 0;
-      } catch {
-        // non-blocking
-      }
+      totalCount = (itemsTotal.count || 0) + (famousCount.count || 0);
+      aiContentCount = itemsAI.count || 0;
 
       if (!mountedRef.current) return;
 
@@ -117,10 +99,7 @@ export const useSEOSyncStatus = () => {
     // Use the stable per-instance channel name — prevents collision on remount
     const channel = supabase
       .channel(channelNameRef.current)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_listings' }, handleTableChange)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_listings' }, handleTableChange)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, handleTableChange)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'answer_keys' }, handleTableChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dynamic_section_items' }, handleTableChange)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'footer_famous_exams' }, handleTableChange)
       .subscribe();
 
