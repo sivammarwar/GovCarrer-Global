@@ -55,7 +55,11 @@ export const FamousExamDetailPage = () => {
 
   const displayName = exam.exam_short_name || exam.exam_name;
   const country = exam.countries;
-  const currentUrl = `${window.location.origin}/famous-exams/${exam.slug}`;
+
+  // ✅ FIXED: Hardcoded base URL instead of window.location.origin
+  // Previously this was `${window.location.origin}/famous-exams/${exam.slug}`
+  // which caused Google to see canonical as "https://yourwebsite.com/..." — a placeholder
+  const currentUrl = `https://www.kvresults.com/famous-exams/${exam.slug}`;
 
   const quickLinks = [
     { icon: FileText, title: 'Notification', desc: 'Official notification PDF', color: '#2563eb', bg: '#eff6ff', border: '#2563eb' },
