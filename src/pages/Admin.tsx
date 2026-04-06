@@ -110,10 +110,6 @@ const AdminNoticeBoardManager = lazy(() =>
   }))
 );
 
-const AIScraperAdmin = lazy(() =>
-  import("@/components/admin/AIScraperAdmin").then((m) => ({ default: m.default }))
-);
-
 const AdminSectionManager = lazy(() =>
   import("@/components/admin/AdminSectionManager").then((m) => ({
     default: m.AdminSectionManager,
@@ -153,7 +149,6 @@ const AdminContent = () => {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route index element={<AdminDashboard />} />
-          <Route path="ai-scraper" element={<AIScraperAdmin />} />
           <Route path="countries" element={<CountriesManager />} />
           <Route path="famous-exams" element={<AdminFamousExams />} />
           <Route path="notice-board" element={<AdminNoticeBoardManager />} />
