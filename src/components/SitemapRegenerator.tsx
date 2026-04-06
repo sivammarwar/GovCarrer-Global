@@ -31,10 +31,10 @@ export const SitemapRegenerator = () => {
     setError(null);
 
     try {
-      // POST to the same endpoint Google uses — API accepts both GET and POST
-      const response = await fetch('/sitemap.xml', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // GET /api/sitemap directly — bypasses public/sitemap.xml static file
+      const response = await fetch('/api/sitemap', {
+        method: 'GET',
+        headers: { 'Accept': 'application/xml' },
       });
 
       if (!response.ok) {
