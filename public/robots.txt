@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kvresults.com/sitemap.xml
+Sitemap: https://www.kvresults.com/sitemap.xml
