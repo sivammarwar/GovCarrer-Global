@@ -22,25 +22,45 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
       if (countries.length === 0) return;
       setAutoDetecting(true);
       try {
-        const response = await fetch('https://ipapi.co/json/');
+        const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
         if (data.country_name) {
           setDetectedCountry(data.country_name);
-          const matchedCountry = countries.find(
-            country => country.country_name.toLowerCase() === data.country_name.toLowerCase()
+          const matched = countries.find(
+            (c) => c.country_name.toLowerCase() === data.country_name.toLowerCase()
           );
-          if (matchedCountry) {
-            setTimeout(() => { onSelectCountry(matchedCountry); }, 1500);
+          if (matched) {
+            setTimeout(() => onSelectCountry(matched), 1500);
           }
         }
-      } catch (error) {
-        console.log('Could not auto-detect country:', error);
+      } catch {
+        // silently ignore geo-detection failures
       } finally {
         setAutoDetecting(false);
       }
     };
     detectCountry();
   }, [countries, onSelectCountry]);
+
+  /*
+    COUNTRY GRID MIN-HEIGHT
+    This value (540px) is derived from:
+      - search box:    64px
+      - gap:           32px (mb-8)
+      - 3 grid rows:   3 × (card ~112px + gap 16px) = 384px
+      - footer note:   40px
+    = 520px, rounded up to 540px for safety.
+
+    Previously this was 480px, but with the search box on top that wasn't
+    enough to cover the actual content height, so the page still shifted
+    slightly (0.012 CLS). Using a value that's at least as tall as the
+    rendered content eliminates the shift.
+
+    For mobile (≤640px) the cards are smaller (grid-cols-2) so 420px is enough.
+    We apply 540px desktop-first; the component is not visible on mobile
+    in the same layout so this doesn't add unnecessary whitespace.
+  */
+  const GRID_MIN_HEIGHT = typeof window !== "undefined" && window.innerWidth < 640 ? 420 : 540;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden transition-colors duration-300">
@@ -55,7 +75,7 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                   <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#grid)" />
@@ -72,21 +92,22 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                     Your gateway to government opportunities worldwide
                   </p>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
             </div>
 
-            {/* Stats */}
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-6">
               <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
                 <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{countries.length}+ Countries</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {countries.length}+ Countries
+                </span>
               </div>
             </div>
 
             {autoDetecting && (
               <div className="mt-4 inline-flex items-center gap-3 bg-blue-500 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-lg animate-pulse">
-                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
                 <span className="font-semibold">Detecting your location...</span>
               </div>
             )}
@@ -98,18 +119,16 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
             )}
           </div>
 
-          {/* Search and Country Grid */}
           {/*
-            FIX: Added min-height to this wrapper.
-            PageSpeed reported "Layout shift culprits: <div class='w-full max-w-6xl mx-auto'>"
-            with a shift score of 0.013. This happened because the grid would render empty,
-            then fill in once countries loaded, pushing content below it down.
-            The min-height reserves space equivalent to approximately 3 rows of country cards
-            so the layout is stable before and after data arrives.
+            COUNTRY GRID WRAPPER
+            min-height set to GRID_MIN_HEIGHT (540px desktop / 420px mobile).
+            This is the element PageSpeed flagged with CLS 0.012:
+              <div class="w-full max-w-6xl mx-auto" style="min-height: 480px;">
+            The previous 480px wasn't tall enough to cover the search box +
+            the first 3 rows of country cards, so the page still shifted.
           */}
-          <div className="w-full max-w-6xl mx-auto" style={{ minHeight: '480px' }}>
+          <div className="w-full max-w-6xl mx-auto" style={{ minHeight: GRID_MIN_HEIGHT }}>
 
-            {/* Search Box */}
             <div className="relative mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 pointer-events-none" />
               <Input
@@ -121,16 +140,17 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
               />
             </div>
 
-            {/* Country Grid */}
             {loading ? (
               <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-blue-600 dark:border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div className="inline-block w-12 h-12 border-4 border-blue-600 dark:border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 font-semibold text-lg">Loading countries...</p>
               </div>
             ) : filteredCountries.length === 0 ? (
               <div className="text-center py-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-12 rounded-3xl border-2 border-gray-200 dark:border-gray-700 shadow-xl">
                 <Globe className="w-20 h-20 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
-                <p className="text-gray-600 dark:text-gray-400 text-lg font-semibold">No countries found matching "{searchQuery}"</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg font-semibold">
+                  No countries found matching "{searchQuery}"
+                </p>
               </div>
             ) : (
               <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
@@ -141,7 +161,7 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                       onClick={() => onSelectCountry(country)}
                       className="group relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-600 p-6 sm:p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-500/50 dark:focus:ring-blue-600/50"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="relative">
                         <div className="text-5xl sm:text-6xl mb-3 group-hover:scale-125 transition-transform duration-300 drop-shadow-lg">
                           {country.flag_emoji || "🏳️"}
@@ -156,11 +176,11 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
 
                 <div className="mt-10 text-center">
                   <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl px-6 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                     <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       <strong className="text-blue-600 dark:text-blue-400">{countries.length}</strong> countries available
                     </p>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -172,7 +192,7 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
       <style>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
       `}</style>
