@@ -45,20 +45,11 @@
       CRITICAL CSS — inlined to give the browser enough to paint the first
       frame before the Vite-generated CSS file downloads.
 
-      NOTE: We removed the previous `<link rel="stylesheet" media="print">` hack
-      because Vite hashes the CSS filename on every build (index-B_44UeMI.css
-      became index-zsq4kV4T.css), so the hardcoded path was loading the wrong
-      file and the real CSS was still injected by Vite's <script> normally —
-      meaning we had TWO CSS loads instead of one.
-
-      The correct approach for a Vite app is to let Vite inject the CSS link
-      normally (it does this via the <script type="module"> tag below), and only
-      inline the tiny subset of critical styles here. Vite's injected CSS is
-      NOT render-blocking in modern browsers when loaded alongside the module
-      script — the browser can parse HTML while the CSS and JS download in
-      parallel.
-
-      These inlined rules are the minimum for a stable, correct first paint:
+      FIX: Removed the `body>div>div{min-height:100vh}` rule that was
+      targeting #root > App > Dashboard/CountrySelector and forcing that
+      inner div to 100vh tall — creating a blank white gap above the header.
+      The `#root` rule alone is sufficient; both Dashboard and CountrySelector
+      already declare `min-h-screen` on their own wrapper divs.
     -->
     <style>
       *,*::before,*::after{box-sizing:border-box}
@@ -70,8 +61,6 @@
         -webkit-font-smoothing:antialiased;
       }
       #root{width:100%;min-height:100vh}
-      /* Prevent flash of unstyled sticky header */
-      body>div>div{min-height:100vh}
     </style>
 
     <!-- Google Fonts — non-blocking -->
