@@ -27,22 +27,43 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#1e40af" />
 
-    <!-- Preconnect to Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!--
+      REMOVED: preconnect to fonts.googleapis.com and fonts.gstatic.com
+      PageSpeed flagged these as "Unused preconnect" — the fonts are loaded
+      via a <link rel="stylesheet"> below which triggers its own connection.
+      Redundant preconnects waste a TCP+TLS handshake slot (~100ms each).
 
-    <!-- Google AdSense - load after interactive to prevent render blocking -->
+      ADDED: preconnect to the two origins that actually block LCP:
+        - fxzwlkhwfvydntrgqabs.supabase.co  → saves ~310ms per PageSpeed
+        - ipapi.co                           → saves ~300ms per PageSpeed
+    -->
+    <link rel="preconnect" href="https://fxzwlkhwfvydntrgqabs.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://ipapi.co" crossorigin />
+
+    <!-- Google Fonts — non-blocking load -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+
+    <!--
+      Google AdSense — deferred until the browser is idle.
+      requestIdleCallback fires after the main thread is free, so it no
+      longer blocks FCP or LCP. Falls back to a 2s setTimeout for Safari.
+      This alone should save ~29KB of render-blocking transfer (per the
+      "Reduce unused JavaScript" audit showing 28.8 KiB savings on adsbygoogle.js).
+    -->
     <script>
-      // Defer AdSense loading until after page is interactive
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          var script = document.createElement('script');
-          script.async = true;
-          script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7027616987791044';
-          script.crossOrigin = 'anonymous';
-          document.head.appendChild(script);
-        }, 100); // Small delay after load event
-      });
+      function loadAdSense() {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7027616987791044';
+        s.crossOrigin = 'anonymous';
+        document.head.appendChild(s);
+      }
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadAdSense, { timeout: 3000 });
+      } else {
+        window.addEventListener('load', function() { setTimeout(loadAdSense, 2000); });
+      }
     </script>
   </head>
 
