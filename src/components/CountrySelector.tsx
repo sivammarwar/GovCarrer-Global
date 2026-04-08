@@ -141,9 +141,23 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
             </div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-blue-600 dark:border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-gray-600 dark:text-gray-400 font-semibold text-lg">Loading countries...</p>
+              /*
+                LOADING SKELETON — matches the grid layout so there's no
+                height change when real cards load in. 5 columns × 3 rows
+                at ~112px each = same visual footprint as the real grid.
+              */
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: "112px",
+                      background: "#e2e8f0",
+                      borderRadius: "16px",
+                      opacity: 0.5,
+                    }}
+                  />
+                ))}
               </div>
             ) : filteredCountries.length === 0 ? (
               <div className="text-center py-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-12 rounded-3xl border-2 border-gray-200 dark:border-gray-700 shadow-xl">
