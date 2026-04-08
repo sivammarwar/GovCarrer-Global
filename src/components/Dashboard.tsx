@@ -63,7 +63,15 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         />
       );
     }
-    return null;
+    // Return skeleton placeholder instead of null to prevent CLS
+    return (
+      <div style={{
+        minHeight: '300px',
+        background: '#e2e8f0',
+        borderRadius: '8px',
+        opacity: 0.3
+      }} aria-hidden="true" />
+    );
   };
 
   return (
@@ -167,7 +175,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
 
         {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice">
+        <div className="official-notice" style={{ minHeight: '90px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
             <div style={{
               padding: '7px 10px',
