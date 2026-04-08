@@ -76,19 +76,45 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         <NoticeTicker countryId={selectedCountry.id} />
       </div>
 
-      <main className="portal-container flex-1" style={{ paddingTop: 20, paddingBottom: 32 }}>
+      <main className="portal-container flex-1" style={{ paddingTop: 20, paddingBottom: 32, contentVisibility: 'auto', containIntrinsicHeight: '600px', minHeight: '500px' }}>
 
         {/* ── Dynamic Tab Navigation ───────────────────── */}
-        <div
-          className="timeline-tab-container"
-          style={{
+        {sectionsLoading ? (
+          // Skeleton for tabs - prevents CLS by reserving space
+          <div style={{
             display: 'grid',
             gap: '12px',
             marginBottom: '24px',
-            width: '100%'
-          }}
-        >
-          {dynamicSections.map((section) => {
+            width: '100%',
+            minHeight: '60px'
+          }}>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} style={{
+                  width: '120px',
+                  height: '52px',
+                  background: '#e2e8f0',
+                  borderRadius: '8px',
+                  opacity: 0.5
+                }} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="timeline-tab-container"
+            style={{
+              display: 'grid',
+              gap: '12px',
+              marginBottom: '24px',
+              width: '100%'
+            }}
+          >
+            {dynamicSections.map((section) => {
             const isActive = activeTab === section.slug;
             const color = getColorValue(section.color);
             return (
@@ -127,7 +153,8 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               </button>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* ── Active Section Content ───────────────────────── */}
         <div style={{ marginBottom: 20 }}>
