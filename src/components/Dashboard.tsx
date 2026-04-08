@@ -175,8 +175,8 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
 
         {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice" style={{ minHeight: '100px', height: '100px', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, height: '100%' }}>
+        <div className="official-notice" style={{ minHeight: '110px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
             <div style={{
               width: '32px',
               height: '32px',
@@ -185,7 +185,8 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               justifyContent: 'center',
               background: '#1e3a7a',
               borderRadius: 5,
-              flexShrink: 0
+              flexShrink: 0,
+              marginTop: '2px'
             }}>
               <ShieldCheck size={16} color="white" />
             </div>
@@ -197,7 +198,6 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 margin: '0 0 6px 0',
-                height: '14px',
                 lineHeight: '14px'
               }}>
                 Important Notice — Independent Portal
@@ -205,10 +205,8 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               <p style={{
                 fontSize: 12.5,
                 color: '#374151',
-                lineHeight: 1.5,
-                margin: 0,
-                height: '38px',
-                overflow: 'hidden'
+                lineHeight: 1.6,
+                margin: 0
               }}>
                 This portal is an <strong>independent service</strong> and is not affiliated with any government organization.
                 All links redirect to <strong>official government websites</strong> for your security and accuracy.
@@ -227,7 +225,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               whiteSpace: 'nowrap',
               letterSpacing: '0.05em',
               flexShrink: 0,
-              height: '28px'
+              marginTop: '2px'
             }}>
               <Lock size={10} />
               VERIFIED LINKS
