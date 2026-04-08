@@ -175,7 +175,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
 
         {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice" style={{ minHeight: '110px' }}>
+        <div className="official-notice" style={{ padding: '16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
             <div style={{
               width: '32px',
@@ -185,8 +185,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               justifyContent: 'center',
               background: '#1e3a7a',
               borderRadius: 5,
-              flexShrink: 0,
-              marginTop: '2px'
+              flexShrink: 0
             }}>
               <ShieldCheck size={16} color="white" />
             </div>
@@ -197,8 +196,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
                 color: '#1e3a7a',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                margin: '0 0 6px 0',
-                lineHeight: '14px'
+                margin: '0 0 8px 0'
               }}>
                 Important Notice — Independent Portal
               </p>
@@ -224,8 +222,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               borderRadius: 4,
               whiteSpace: 'nowrap',
               letterSpacing: '0.05em',
-              flexShrink: 0,
-              marginTop: '2px'
+              flexShrink: 0
             }}>
               <Lock size={10} />
               VERIFIED LINKS
