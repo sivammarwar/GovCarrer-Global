@@ -56,13 +56,15 @@ export const NoticeBoardMarquee = ({ countryId }: NoticeBoardMarqueeProps) => {
     }
   };
 
+  // Fixed height skeleton to prevent CLS
   if (loading) {
     return (
       <div style={{
         background: 'linear-gradient(90deg, #0a1628 0%, #162d5e 100%)',
         borderTop: '3px solid #d4a017',
         borderBottom: '3px solid #d4a017',
-        padding: '10px 0'
+        padding: '11px 0',
+        minHeight: '52px'
       }}>
         <div className="portal-container" style={{ paddingTop: 0, paddingBottom: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -73,7 +75,18 @@ export const NoticeBoardMarquee = ({ countryId }: NoticeBoardMarqueeProps) => {
     );
   }
 
-  if (notices.length === 0) return null;
+  // Reserve space even when empty to prevent CLS
+  if (notices.length === 0) {
+    return (
+      <div style={{
+        background: 'linear-gradient(90deg, #0a1628 0%, #162d5e 100%)',
+        borderTop: '3px solid #d4a017',
+        borderBottom: '3px solid #d4a017',
+        minHeight: '52px', // Reserve space
+        visibility: 'hidden' // Hidden but takes up space
+      }} aria-hidden="true" />
+    );
+  }
 
   return (
     <div style={{
