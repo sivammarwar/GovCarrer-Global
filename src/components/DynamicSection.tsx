@@ -144,7 +144,7 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
           </div>
         </div>
       ) : groupedByDate.length === 0 || (groupedByDate[0]?.items?.length === 0) ? (
-        <div className="timeline-empty">Nothing to show yet.</div>
+        <div className="timeline-empty" style={{ minHeight: '200px' }}>Nothing to show yet.</div>
       ) : (
         <div className="timeline-container">
           {groupedByDate.map((group) => (
