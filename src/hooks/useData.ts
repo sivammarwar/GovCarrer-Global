@@ -1,4 +1,14 @@
-import { useEffect, useState } from "react";
+/*
+  useData.ts
+  Migrated from raw useState/useEffect to React Query.
+
+  Key fix: useCountries() was firing duplicate network requests because
+  multiple components (Header dropdown + CountrySelector) each ran their
+  own useEffect fetch independently. React Query deduplicates by query key —
+  only one network request fires no matter how many components call the hook.
+*/
+
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DbCountry {
@@ -8,7 +18,6 @@ export interface DbCountry {
   flag_emoji: string | null;
   is_active: boolean;
 }
-
 
 export interface DbNotice {
   id: string;
@@ -31,117 +40,100 @@ export interface DbFamousExam {
   updated_at: string;
 }
 
-export const useCountries = () => {
-  const [countries, setCountries] = useState<DbCountry[]>([]);
-  const [loading, setLoading] = useState(true);
+// ─── Countries ────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    const fetchCountries = async () => {
+export const useCountries = () => {
+  const { data: countries = [], isLoading: loading } = useQuery({
+    queryKey: ["countries", "active"],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("countries")
         .select("*")
         .eq("is_active", true)
         .order("country_name");
-
-      if (!error && data) {
-        setCountries(data);
-      }
-      setLoading(false);
-    };
-
-    fetchCountries();
-  }, []);
-
+      if (error) throw error;
+      return data as DbCountry[];
+    },
+    // Country list rarely changes — 15min stale time means any component
+    // mounting within that window gets the cached result, no extra request.
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
   return { countries, loading };
 };
 
+// ─── Notices by country ───────────────────────────────────────────────────────
+
 export const useNoticesByCountry = (countryId: string | null) => {
-  const [notices, setNotices] = useState<DbNotice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!countryId) {
-      setNotices([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchNotices = async () => {
-      setLoading(true);
+  const { data: notices = [], isLoading: loading } = useQuery({
+    queryKey: ["notices", "byCountry", countryId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("notices")
         .select("*")
-        .eq("country_id", countryId)
+        .eq("country_id", countryId!)
         .eq("is_active", true)
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setNotices(data);
-      }
-      setLoading(false);
-    };
-
-    fetchNotices();
-  }, [countryId]);
-
+      if (error) throw error;
+      return data as DbNotice[];
+    },
+    enabled: !!countryId,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
   return { notices, loading };
 };
 
-// Keep the old useNotices for backward compatibility or global notices
+// ─── All notices (global / backward compat) ───────────────────────────────────
+
 export const useNotices = () => {
-  const [notices, setNotices] = useState<DbNotice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchNotices = async () => {
+  const { data: notices = [], isLoading: loading } = useQuery({
+    queryKey: ["notices", "all"],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("notices")
         .select("*")
         .eq("is_active", true)
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setNotices(data);
-      }
-      setLoading(false);
-    };
-
-    fetchNotices();
-  }, []);
-
+      if (error) throw error;
+      return data as DbNotice[];
+    },
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
   return { notices, loading };
 };
+
+// ─── Famous exams by country ──────────────────────────────────────────────────
 
 export const useFamousExamsByCountry = (countryId: string | null) => {
-  const [exams, setExams] = useState<DbFamousExam[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!countryId) {
-      setExams([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchFamousExams = async () => {
-      setLoading(true);
+  const { data: exams = [], isLoading: loading } = useQuery({
+    queryKey: ["famousExams", countryId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("footer_famous_exams")
         .select("*")
-        .eq("country_id", countryId)
+        .eq("country_id", countryId!)
         .eq("is_active", true)
         .order("display_order", { ascending: true });
-
-      if (!error && data) {
-        setExams(data);
-      }
-      setLoading(false);
-    };
-
-    fetchFamousExams();
-  }, [countryId]);
-
+      if (error) throw error;
+      return data as DbFamousExam[];
+    },
+    enabled: !!countryId,
+    // This is the 91.92 KiB payload — cache aggressively since exam lists
+    // change very infrequently.
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
   return { exams, loading };
 };
