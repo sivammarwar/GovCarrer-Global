@@ -28,28 +28,54 @@
     <meta name="theme-color" content="#1e40af" />
 
     <!--
-      REMOVED: preconnect to fonts.googleapis.com and fonts.gstatic.com
-      PageSpeed flagged these as "Unused preconnect" — the fonts are loaded
-      via a <link rel="stylesheet"> below which triggers its own connection.
-      Redundant preconnects waste a TCP+TLS handshake slot (~100ms each).
-
-      ADDED: preconnect to the two origins that actually block LCP:
-        - fxzwlkhwfvydntrgqabs.supabase.co  → saves ~310ms per PageSpeed
-        - ipapi.co                           → saves ~300ms per PageSpeed
+      PRECONNECT FIXES vs last report:
+      - Supabase: keep crossorigin (authenticated CORS fetch).
+      - ipapi.co: REMOVED crossorigin. PageSpeed flagged the previous
+        "crossorigin" attribute as wrong — ipapi fetch uses default CORS
+        (no credentials), so the preconnect must omit crossorigin to share
+        the same connection pool as the actual fetch. Est LCP saving: 340ms.
+      - Added dns-prefetch as a belt-and-suspenders fallback.
     -->
     <link rel="preconnect" href="https://fxzwlkhwfvydntrgqabs.supabase.co" crossorigin />
-    <link rel="preconnect" href="https://ipapi.co" crossorigin />
-
-    <!-- Google Fonts — non-blocking load -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="preconnect" href="https://ipapi.co" />
+    <link rel="dns-prefetch" href="https://fxzwlkhwfvydntrgqabs.supabase.co" />
+    <link rel="dns-prefetch" href="https://ipapi.co" />
 
     <!--
-      Google AdSense — deferred until the browser is idle.
+      CRITICAL CSS — inlined to eliminate the render-blocking stylesheet.
+      PageSpeed: "/assets/index-B_44UeMI.css (19.5 KiB, 340ms blocking)".
+      We inline only the minimum rules needed for a correct first paint
+      (body reset, layout shell, sticky header dimensions). The full
+      Tailwind file still loads but non-blocking via media="print" swap.
+      This saves 340ms from the critical path.
+    -->
+    <style>
+      *,*::before,*::after{box-sizing:border-box}
+      html{overflow-x:hidden;max-width:100vw;scroll-behavior:smooth}
+      body{margin:0;overflow-x:hidden;max-width:100vw;background-color:#f0f3f8;font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+      #root{min-width:auto;width:100%;min-height:100vh}
+      .portal-container{width:100%;max-width:100%;margin-left:auto;margin-right:auto;padding-left:16px;padding-right:16px}
+      @media(min-width:768px){.portal-container{max-width:1240px;padding-left:24px;padding-right:24px}}
+      /* Sticky header shell — prevents layout reflow on first paint */
+      header[style*="sticky"]{position:sticky;top:0;z-index:40}
+      /* Skeleton color token used by loading states before Tailwind loads */
+      .min-h-screen{min-height:100vh}
+      .flex{display:flex}
+      .flex-col{flex-direction:column}
+      .flex-1{flex:1 1 0%}
+    </style>
+
+    <!-- Full app CSS — loaded non-blocking, swaps to 'all' once downloaded -->
+    <link rel="stylesheet" href="/assets/index-B_44UeMI.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="/assets/index-B_44UeMI.css" /></noscript>
+
+    <!-- Google Fonts — non-blocking (Source Serif 4 removed; only IBM Plex Sans is used) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+
+    <!--
+      AdSense — deferred until the browser is idle.
       requestIdleCallback fires after the main thread is free, so it no
-      longer blocks FCP or LCP. Falls back to a 2s setTimeout for Safari.
-      This alone should save ~29KB of render-blocking transfer (per the
-      "Reduce unused JavaScript" audit showing 28.8 KiB savings on adsbygoogle.js).
+      longer blocks FCP or LCP. Fallback to 2s setTimeout for Safari.
     -->
     <script>
       function loadAdSense() {
@@ -60,9 +86,9 @@
         document.head.appendChild(s);
       }
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(loadAdSense, { timeout: 3000 });
+        requestIdleCallback(loadAdSense, { timeout: 4000 });
       } else {
-        window.addEventListener('load', function() { setTimeout(loadAdSense, 2000); });
+        window.addEventListener('load', function () { setTimeout(loadAdSense, 2000); });
       }
     </script>
   </head>
