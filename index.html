@@ -27,9 +27,23 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#1e40af" />
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7027616987791044"
-         crossorigin="anonymous"></script>
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google AdSense - load after interactive to prevent render blocking -->
+    <script>
+      // Defer AdSense loading until after page is interactive
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7027616987791044';
+          script.crossOrigin = 'anonymous';
+          document.head.appendChild(script);
+        }, 100); // Small delay after load event
+      });
+    </script>
   </head>
 
   <body>
