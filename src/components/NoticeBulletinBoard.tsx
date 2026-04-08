@@ -45,7 +45,15 @@ export const NoticeBulletinBoard = ({ countryId }: NoticeBulletinBoardProps) => 
     );
   }
 
-  if (notices.length === 0) return null;
+  // Reserve space when empty to prevent CLS
+  if (notices.length === 0) {
+    return (
+      <div style={{
+        minHeight: '120px', // Reserve approximate space for header + 1 item
+        visibility: 'hidden'
+      }} aria-hidden="true" />
+    );
+  }
 
   const handleNoticeClick = (notice: Notice) => {
     if (notice.notice_link) window.open(notice.notice_link, '_blank', 'noopener,noreferrer');
