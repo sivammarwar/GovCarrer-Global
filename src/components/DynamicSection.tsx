@@ -91,7 +91,58 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
       />
 
       {loading ? (
-        <div className="timeline-loading">Loading...</div>
+        // Skeleton loader with fixed dimensions to prevent CLS
+        <div style={{
+          padding: '24px 0',
+          minHeight: '300px'
+        }}>
+          {/* Skeleton header row */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '20px',
+            flexWrap: 'wrap'
+          }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{
+                width: '100%',
+                maxWidth: '280px',
+                height: '72px',
+                background: '#e2e8f0',
+                borderRadius: '8px',
+                opacity: 0.4 + (i * 0.1)
+              }} />
+            ))}
+          </div>
+          {/* Skeleton timeline items */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'flex-start'
+              }}>
+                {/* Date circle skeleton */}
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: '#e2e8f0',
+                  opacity: 0.4,
+                  flexShrink: 0
+                }} />
+                {/* Item skeleton */}
+                <div style={{
+                  flex: 1,
+                  height: '64px',
+                  background: '#e2e8f0',
+                  borderRadius: '8px',
+                  opacity: 0.3 + (i * 0.05)
+                }} />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : groupedByDate.length === 0 || (groupedByDate[0]?.items?.length === 0) ? (
         <div className="timeline-empty">Nothing to show yet.</div>
       ) : (
