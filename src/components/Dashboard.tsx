@@ -16,8 +16,6 @@ interface DashboardProps {
   onChangeCountry: () => void;
 }
 
-type TabType = string;
-
 const getColorValue = (color: string): string => {
   const colorMap: Record<string, string> = {
     red: "#dc2626",
@@ -37,16 +35,11 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
   const { sections: dynamicSections, loading: sectionsLoading } = useDynamicSections();
   const [activeTab, setActiveTab] = useState<string>("");
 
-  // Set default active tab once sections load
   useEffect(() => {
     if (dynamicSections.length > 0 && !activeTab) {
       setActiveTab(dynamicSections[0].slug);
     }
   }, [dynamicSections, activeTab]);
-
-  // Debug logging
-  console.log("Dynamic sections:", dynamicSections);
-  console.log("Active tab:", activeTab);
 
   const handleCountryChange = (country: DbCountry) => {
     setSelectedCountry(country);
@@ -64,14 +57,12 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         />
       );
     }
-    // Return skeleton placeholder instead of null to prevent CLS
+    // Stable placeholder — same min-height as skeleton to prevent CLS
     return (
-      <div style={{
-        minHeight: '300px',
-        background: '#e2e8f0',
-        borderRadius: '8px',
-        opacity: 0.3
-      }} aria-hidden="true" />
+      <div
+        style={{ minHeight: '400px', background: '#e2e8f0', borderRadius: '8px', opacity: 0.3 }}
+        aria-hidden="true"
+      />
     );
   };
 
@@ -80,16 +71,18 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
 
       <Header country={selectedCountry} onChangeCountry={handleCountryChange} />
 
-      {/* NOTICE TICKER */}
+      {/* NOTICE TICKER — fixed height wrapper prevents CLS when ticker loads */}
       <div style={{ borderBottom: '1px solid #e2e8f0', minHeight: '40px' }}>
         <NoticeTicker countryId={selectedCountry.id} />
       </div>
 
-      <main className="portal-container flex-1" style={{ paddingTop: 20, paddingBottom: 32, contentVisibility: 'auto', containIntrinsicHeight: '600px', minHeight: '500px' }}>
+      <main
+        className="portal-container flex-1"
+        style={{ paddingTop: 20, paddingBottom: 32, minHeight: '500px' }}
+      >
 
         {/* ── Dynamic Tab Navigation ───────────────────── */}
         {sectionsLoading ? (
-          // Skeleton for tabs - prevents CLS by reserving space
           <div style={{
             display: 'grid',
             gap: '12px',
@@ -97,11 +90,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
             width: '100%',
             minHeight: '60px'
           }}>
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              flexWrap: 'wrap'
-            }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} style={{
                   width: '120px',
@@ -116,62 +105,66 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         ) : (
           <div
             className="timeline-tab-container"
-            style={{
-              display: 'grid',
-              gap: '12px',
-              marginBottom: '24px',
-              width: '100%'
-            }}
+            style={{ display: 'grid', gap: '12px', marginBottom: '24px', width: '100%' }}
           >
             {dynamicSections.map((section) => {
-            const isActive = activeTab === section.slug;
-            const color = getColorValue(section.color);
-            return (
-              <button
-                key={section.slug}
-                onClick={() => setActiveTab(section.slug)}
-                style={{
-                  padding: '16px 20px',
-                  background: isActive ? color : 'white',
-                  color: isActive ? 'white' : '#64748b',
-                  border: isActive ? 'none' : '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: 'clamp(12px, 2vw, 14px)',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  transition: 'all 0.15s ease',
-                  boxShadow: isActive ? `0 4px 12px ${color}40` : '0 1px 3px rgba(0,0,0,0.05)',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = color;
-                    e.currentTarget.style.color = color;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.color = '#64748b';
-                  }
-                }}
-              >
-                {section.name}
-              </button>
-            );
-          })}
+              const isActive = activeTab === section.slug;
+              const color = getColorValue(section.color);
+              return (
+                <button
+                  key={section.slug}
+                  onClick={() => setActiveTab(section.slug)}
+                  style={{
+                    padding: '16px 20px',
+                    background: isActive ? color : 'white',
+                    color: isActive ? 'white' : '#64748b',
+                    border: isActive ? 'none' : '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: 'clamp(12px, 2vw, 14px)',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isActive ? `0 4px 12px ${color}40` : '0 1px 3px rgba(0,0,0,0.05)',
+                    textAlign: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = color;
+                      e.currentTarget.style.color = color;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.color = '#64748b';
+                    }
+                  }}
+                >
+                  {section.name}
+                </button>
+              );
+            })}
           </div>
         )}
 
         {/* ── Active Section Content ───────────────────────── */}
-        <div style={{ marginBottom: 20 }}>
+        {/*
+          FIX: The old code had <div style="margin-bottom: 20px;"> here.
+          PageSpeed identified this as the largest CLS culprit (0.370 + 0.081).
+          The div itself wasn't the issue — the problem was that its child content
+          (the section and the NoticeBoardMarquee) was loading asynchronously and
+          then pushing subsequent content down. By giving each zone an explicit
+          minHeight that matches the skeleton dimensions, the layout is stable
+          before content arrives.
+        -->
+        <div style={{ marginBottom: '20px', minHeight: '400px' }}>
           {renderActiveSection()}
         </div>
 
-        {/* ── Notice Board Marquee ──────────────────────────── */}
-        <div style={{ marginBottom: 20 }}>
+        {/* ── Notice Board Marquee — reserved height prevents CLS */}
+        <div style={{ marginBottom: '20px', minHeight: '52px' }}>
           <NoticeBoardMarquee countryId={selectedCountry.id} />
         </div>
 
@@ -179,51 +172,29 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         <div className="official-notice" style={{ padding: '16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
             <div style={{
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#1e3a7a',
-              borderRadius: 5,
-              flexShrink: 0
+              width: '32px', height: '32px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#1e3a7a', borderRadius: 5, flexShrink: 0
             }}>
               <ShieldCheck size={16} color="white" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: '#1e3a7a',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                margin: '0 0 8px 0'
+                fontSize: 11, fontWeight: 800, color: '#1e3a7a',
+                textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px 0'
               }}>
                 Important Notice — Independent Portal
               </p>
-              <p style={{
-                fontSize: 12.5,
-                color: '#374151',
-                lineHeight: 1.6,
-                margin: 0
-              }}>
+              <p style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6, margin: 0 }}>
                 This portal is an <strong>independent service</strong> and is not affiliated with any government organization.
                 All links redirect to <strong>official government websites</strong> for your security and accuracy.
               </p>
             </div>
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              background: '#1e3a7a',
-              color: 'white',
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '6px 12px',
-              borderRadius: 4,
-              whiteSpace: 'nowrap',
-              letterSpacing: '0.05em',
-              flexShrink: 0
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: '#1e3a7a', color: 'white', fontSize: 10, fontWeight: 700,
+              padding: '6px 12px', borderRadius: 4, whiteSpace: 'nowrap',
+              letterSpacing: '0.05em', flexShrink: 0
             }}>
               <Lock size={10} />
               VERIFIED LINKS
@@ -233,7 +204,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
 
       </main>
 
-      {/* ── Notice Bulletin Board ─────────────────────────────── */}
+      {/* ── Notice Bulletin Board — reserved min-height prevents CLS */}
       <div style={{ background: 'white', borderTop: '1px solid #e2e8f0', minHeight: '120px' }}>
         <NoticeBulletinBoard countryId={selectedCountry.id} />
       </div>
@@ -251,13 +222,15 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         minHeight: '100px'
       }}>
         <div className="portal-container">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px'
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
                 width: 36, height: 36,
                 background: 'linear-gradient(135deg, #d4a017 0%, #f0cc5a 100%)',
-                borderRadius: 6,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
                 <ShieldCheck size={18} color="#0a1628" />
               </div>
@@ -270,22 +243,14 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
                 </p>
               </div>
             </div>
-
             <Link
               to="/admin"
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                padding: '9px 18px',
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 5,
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'background 0.15s'
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '9px 18px', background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.2)', borderRadius: 5,
+                color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 600,
+                textDecoration: 'none', transition: 'background 0.15s'
               }}
             >
               Admin Portal →
@@ -295,7 +260,6 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
       </footer>
 
       {/* ── Chat Floating Button ────────────────────────────── */}
-      {/* Rendered at root level to ensure proper fixed positioning */}
       {activeTab && (
         <ChatFloatingButton
           sectionId={activeTab}
