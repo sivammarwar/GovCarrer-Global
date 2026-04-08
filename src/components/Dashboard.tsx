@@ -80,7 +80,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
       <Header country={selectedCountry} onChangeCountry={handleCountryChange} />
 
       {/* NOTICE TICKER */}
-      <div style={{ borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ borderBottom: '1px solid #e2e8f0', minHeight: '40px' }}>
         <NoticeTicker countryId={selectedCountry.id} />
       </div>
 
@@ -175,7 +175,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
 
         {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice" style={{ minHeight: '90px' }}>
+        <div className="official-notice" style={{ minHeight: '120px', height: '120px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
             <div style={{
               padding: '7px 10px',
