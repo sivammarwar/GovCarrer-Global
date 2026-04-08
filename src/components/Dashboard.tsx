@@ -6,6 +6,7 @@ import { NoticeBulletinBoard } from "./NoticeBulletinBoard";
 import { NoticeBoardMarquee } from "./Noticeboardmarquee";
 import { FamousExamsFooter } from "./FamousExamsFooter";
 import { DynamicSectionComponent } from "./DynamicSection";
+import { ChatFloatingButton } from "./ChatFloatingButton";
 import { useDynamicSections } from "@/hooks/useDynamicSections";
 import { DbCountry } from "@/hooks/useData";
 import { ShieldCheck, Lock } from "lucide-react";
@@ -292,6 +293,15 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
           </div>
         </div>
       </footer>
+
+      {/* ── Chat Floating Button ────────────────────────────── */}
+      {/* Rendered at root level to ensure proper fixed positioning */}
+      {activeTab && (
+        <ChatFloatingButton
+          sectionId={activeTab}
+          countryId={selectedCountry.id}
+        />
+      )}
     </div>
   );
 };
