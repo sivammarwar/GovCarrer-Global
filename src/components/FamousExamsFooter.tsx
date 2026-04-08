@@ -80,7 +80,17 @@ export const FamousExamsFooter = ({ countryId }: FamousExamsFooterProps) => {
     );
   }
 
-  if (exams.length === 0) return null;
+  // Reserve space when empty to prevent CLS - match the loaded state dimensions
+  if (exams.length === 0) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, #0a1628 0%, #0f2044 60%, #162d5e 100%)',
+        borderTop: '3px solid #d4a017',
+        minHeight: '280px', // Match the skeleton height
+        visibility: 'hidden'
+      }} aria-hidden="true" />
+    );
+  }
 
   return (
     <div style={{
