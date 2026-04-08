@@ -175,29 +175,41 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
 
         {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice" style={{ minHeight: '120px', height: '120px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
+        <div className="official-notice" style={{ minHeight: '100px', height: '100px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, height: '100%' }}>
             <div style={{
-              padding: '7px 10px',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               background: '#1e3a7a',
               borderRadius: 5,
-              flexShrink: 0,
-              marginTop: 2
+              flexShrink: 0
             }}>
               <ShieldCheck size={16} color="white" />
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
                 fontSize: 11,
                 fontWeight: 800,
                 color: '#1e3a7a',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                margin: '0 0 5px 0'
+                margin: '0 0 6px 0',
+                height: '14px',
+                lineHeight: '14px'
               }}>
                 Important Notice — Independent Portal
               </p>
-              <p style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+              <p style={{
+                fontSize: 12.5,
+                color: '#374151',
+                lineHeight: 1.5,
+                margin: 0,
+                height: '38px',
+                overflow: 'hidden'
+              }}>
                 This portal is an <strong>independent service</strong> and is not affiliated with any government organization.
                 All links redirect to <strong>official government websites</strong> for your security and accuracy.
               </p>
@@ -210,11 +222,12 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
               color: 'white',
               fontSize: 10,
               fontWeight: 700,
-              padding: '5px 10px',
+              padding: '6px 12px',
               borderRadius: 4,
               whiteSpace: 'nowrap',
               letterSpacing: '0.05em',
-              flexShrink: 0
+              flexShrink: 0,
+              height: '28px'
             }}>
               <Lock size={10} />
               VERIFIED LINKS
