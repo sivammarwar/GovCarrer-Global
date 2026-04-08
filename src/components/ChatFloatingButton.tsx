@@ -34,7 +34,6 @@ export const ChatFloatingButton = ({ sectionId, countryId, hasUnread = false }: 
 
   return (
     <button
-      className="chat-floating-button"
       onClick={() => navigate(countryCode ? `/chat/${sectionId}?country=${countryCode}` : `/chat/${sectionId}`)}
       style={{
         position: "fixed",
@@ -52,7 +51,7 @@ export const ChatFloatingButton = ({ sectionId, countryId, hasUnread = false }: 
         fontSize: "14px",
         fontWeight: 600,
         boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-        zIndex: 9999,
+        zIndex: 10000,
         transition: "transform 0.15s, box-shadow 0.15s"
       }}
       onMouseEnter={(e) => {
