@@ -42,6 +42,10 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   indigo: { bg: "#eef2ff", text: "#3730a3", border: "#c7d2fe" },
 };
 
+// Minimum height for the content area — matches skeleton so there's no
+// layout jump when we transition from loading → content → empty states.
+const CONTENT_MIN_HEIGHT = '300px';
+
 export const DynamicSectionComponent = ({ section, countryId, isActive, onClick }: DynamicSectionComponentProps) => {
   const { items, loading } = useDynamicSectionItems(isActive ? section.id : null, countryId);
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,9 +66,7 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
   return (
     <div
       className="timeline-section"
-      style={{
-        display: isActive ? "block" : "none",
-      }}
+      style={{ display: isActive ? "block" : "none" }}
     >
       <SectionHeader
         title={section.name}
@@ -91,60 +93,49 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
       />
 
       {loading ? (
-        // Skeleton loader with fixed dimensions to prevent CLS
-        <div style={{
-          padding: '24px 0',
-          minHeight: '300px'
-        }}>
-          {/* Skeleton header row */}
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            marginBottom: '20px',
-            flexWrap: 'wrap'
-          }}>
+        /*
+          Skeleton — minHeight matches the content area so neither the
+          skeleton→empty transition nor skeleton→content transition shifts
+          the page. This was responsible for the 0.013 CLS entry.
+        */
+        <div style={{ padding: '24px 0', minHeight: CONTENT_MIN_HEIGHT }}>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} style={{
-                width: '100%',
-                maxWidth: '280px',
-                height: '72px',
-                background: '#e2e8f0',
-                borderRadius: '8px',
+                width: '100%', maxWidth: '280px', height: '72px',
+                background: '#e2e8f0', borderRadius: '8px',
                 opacity: 0.4 + (i * 0.1)
               }} />
             ))}
           </div>
-          {/* Skeleton timeline items */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} style={{
-                display: 'flex',
-                gap: '16px',
-                alignItems: 'flex-start'
-              }}>
-                {/* Date circle skeleton */}
+              <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                 <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: '#e2e8f0',
-                  opacity: 0.4,
-                  flexShrink: 0
+                  width: '56px', height: '56px', borderRadius: '50%',
+                  background: '#e2e8f0', opacity: 0.4, flexShrink: 0
                 }} />
-                {/* Item skeleton */}
                 <div style={{
-                  flex: 1,
-                  height: '64px',
-                  background: '#e2e8f0',
-                  borderRadius: '8px',
-                  opacity: 0.3 + (i * 0.05)
+                  flex: 1, height: '64px', background: '#e2e8f0',
+                  borderRadius: '8px', opacity: 0.3 + (i * 0.05)
                 }} />
               </div>
             ))}
           </div>
         </div>
       ) : groupedByDate.length === 0 || (groupedByDate[0]?.items?.length === 0) ? (
-        <div className="timeline-empty" style={{ minHeight: '200px' }}>Nothing to show yet.</div>
+        /*
+          FIX: Empty state now has the same minHeight as the skeleton.
+          Previously the empty state was much shorter than the skeleton,
+          so when data loaded and turned out to be empty, the page jumped
+          up — that was the 0.013 CLS entry in the layout shift report.
+        */
+        <div
+          className="timeline-empty"
+          style={{ minHeight: CONTENT_MIN_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          Nothing to show yet.
+        </div>
       ) : (
         <div className="timeline-container">
           {groupedByDate.map((group) => (
@@ -179,14 +170,12 @@ export const DynamicSectionComponent = ({ section, countryId, isActive, onClick 
 
 const groupItemsByDate = (items: any[], ascending: boolean = false) => {
   const groups: Record<string, any[]> = {};
-
   items.forEach((item) => {
     const dateKey = item.date_value || "TBA";
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(item);
   });
-
-  const sorted = Object.entries(groups)
+  return Object.entries(groups)
     .map(([date, items]) => ({ date, items }))
     .sort((a, b) => {
       if (a.date === "TBA") return 1;
@@ -195,8 +184,6 @@ const groupItemsByDate = (items: any[], ascending: boolean = false) => {
       const timeB = new Date(b.date).getTime();
       return ascending ? timeA - timeB : timeB - timeA;
     });
-
-  return sorted;
 };
 
 const formatDateDisplay = (dateStr: string) => {
