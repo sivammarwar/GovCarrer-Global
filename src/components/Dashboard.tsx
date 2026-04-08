@@ -225,18 +225,21 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
       </main>
 
       {/* ── Notice Bulletin Board ─────────────────────────────── */}
-      <div style={{ background: 'white', borderTop: '1px solid #e2e8f0' }}>
+      <div style={{ background: 'white', borderTop: '1px solid #e2e8f0', minHeight: '120px' }}>
         <NoticeBulletinBoard countryId={selectedCountry.id} />
       </div>
 
       {/* ── Famous Exams Footer ───────────────────────────────── */}
-      <FamousExamsFooter countryId={selectedCountry.id} />
+      <div style={{ minHeight: '280px' }}>
+        <FamousExamsFooter countryId={selectedCountry.id} />
+      </div>
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer style={{
         background: 'linear-gradient(135deg, #0a1628 0%, #0f2044 100%)',
         borderTop: '3px solid #d4a017',
-        padding: '28px 0'
+        padding: '28px 0',
+        minHeight: '100px'
       }}>
         <div className="portal-container">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
