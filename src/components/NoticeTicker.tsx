@@ -34,10 +34,12 @@ export const NoticeTicker = ({ countryId }: NoticeTickerProps) => {
 
   useEffect(() => { fetchNotices(); }, [countryId]);
 
+  // Fixed height skeleton to prevent CLS
   if (loading) {
     return (
       <div style={{
         background: '#b91c1c',
+        minHeight: '40px',
         padding: '9px 0',
         display: 'flex',
         alignItems: 'center'
@@ -66,7 +68,17 @@ export const NoticeTicker = ({ countryId }: NoticeTickerProps) => {
     );
   }
 
-  if (notices.length === 0) return null;
+  // Reserve space even when empty to prevent CLS
+  if (notices.length === 0) {
+    return (
+      <div style={{
+        background: '#b91c1c',
+        minHeight: '40px', // Reserve space
+        padding: '9px 0',
+        visibility: 'hidden' // Hidden but takes up space
+      }} aria-hidden="true" />
+    );
+  }
 
   const handleNoticeClick = (notice: Notice) => {
     if (notice.notice_link) window.open(notice.notice_link, '_blank', 'noopener,noreferrer');
