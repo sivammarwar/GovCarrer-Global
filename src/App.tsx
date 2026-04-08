@@ -31,30 +31,29 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       /*
-        Increased staleTime from 5min → 10min.
-        The PageSpeed trace shows 8 parallel Supabase requests all firing
-        at ~3.7s, several of which are duplicate fetches for countries and
-        notices. Longer staleTime means React Query serves from cache on
-        re-renders without triggering a new network request, which directly
-        reduces the number of concurrent requests competing for bandwidth
-        and brings down LCP latency.
+        staleTime: 10min — government exam data doesn't change second-to-second.
+        This prevents the duplicate countries fetches visible in the network trace
+        (same endpoint hit at 1,754ms and again at 3,817ms). When the second
+        component mounts and calls useCountries(), React Query serves from cache.
       */
       staleTime: 10 * 60 * 1000,
-      /*
-        cacheTime kept at 30min so navigating back to a page doesn't
-        re-fetch — the data is still in memory.
-      */
       cacheTime: 30 * 60 * 1000,
       /*
-        refetchOnWindowFocus: false — the original was `true`, which means
-        every time the user switches tabs and comes back, 8+ Supabase requests
-        fire simultaneously. This is a common LCP killer for SPAs. Government
-        exam data doesn't change second-to-second; removing this is safe.
+        refetchOnWindowFocus: false — critical for LCP.
+        With true (the original default), switching browser tabs fires 8+
+        Supabase requests simultaneously on return. Government data doesn't
+        need real-time updates on focus.
       */
       refetchOnWindowFocus: false,
+      /*
+        refetchOnMount: false — when a component unmounts and remounts
+        (e.g. tab switching), React Query won't re-fetch if data is fresh.
+        Combined with staleTime above, this is the primary fix for the
+        duplicate countries request in the network waterfall.
+      */
       refetchOnMount: false,
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
       onError: (error) => {
         console.error('Query error:', error);
       },
