@@ -27,29 +27,16 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#1e40af" />
 
-    <!--
-      PRECONNECT — only Supabase (with crossorigin for authenticated CORS).
-
-      ipapi.co REMOVED entirely:
-      - Lighthouse keeps flagging it as "Unused preconnect. Check that the
-        crossorigin attribute is used properly" regardless of whether we
-        include or omit the crossorigin attribute.
-      - ipapi.co is now outside the critical path (the React Query cache
-        means the fetch fires after hydration, not during initial load).
-      - Removing it stops Lighthouse from penalising us for it.
-    -->
+    <!-- PRECONNECT — Supabase only -->
     <link rel="preconnect" href="https://fxzwlkhwfvydntrgqabs.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://fxzwlkhwfvydntrgqabs.supabase.co" />
 
     <!--
-      CRITICAL CSS — inlined to give the browser enough to paint the first
-      frame before the Vite-generated CSS file downloads.
-
-      FIX: Removed the `body>div>div{min-height:100vh}` rule that was
-      targeting #root > App > Dashboard/CountrySelector and forcing that
-      inner div to 100vh tall — creating a blank white gap above the header.
-      The `#root` rule alone is sufficient; both Dashboard and CountrySelector
-      already declare `min-h-screen` on their own wrapper divs.
+      CRITICAL CSS — minimum styles for a stable first paint.
+      NOTE: body>div>div rule REMOVED — it was forcing a blank white gap above
+      the header by applying min-height:100vh to the inner wrapper div.
+      #root alone is sufficient; Dashboard and CountrySelector already declare
+      min-h-screen on their own wrapper divs.
     -->
     <style>
       *,*::before,*::after{box-sizing:border-box}
@@ -66,26 +53,6 @@
     <!-- Google Fonts — non-blocking -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" /></noscript>
-
-    <!--
-      AdSense — deferred until browser is idle.
-      requestIdleCallback fires after main thread is free, so it never
-      blocks FCP or LCP. Falls back to 2s setTimeout for Safari.
-    -->
-    <script>
-      function loadAdSense() {
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7027616987791044';
-        s.crossOrigin = 'anonymous';
-        document.head.appendChild(s);
-      }
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(loadAdSense, { timeout: 4000 });
-      } else {
-        window.addEventListener('load', function () { setTimeout(loadAdSense, 2000); });
-      }
-    </script>
   </head>
 
   <body>
