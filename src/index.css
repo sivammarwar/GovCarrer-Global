@@ -8,14 +8,7 @@
    ============================================================ */
 
 /* ─── Performance Optimizations ───────────────────────────────── */
-/* Content-visibility for off-screen sections to improve rendering */
-.portal-container,
-.timeline-section,
-.section-card,
-.famous-exams-section {
-  content-visibility: auto;
-  contain-intrinsic-height: auto 300px;
-}
+/* Note: content-visibility removed as it breaks position: fixed for chat button */
 
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
