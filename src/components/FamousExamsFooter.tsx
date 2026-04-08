@@ -25,16 +25,56 @@ const pillColors = [
 export const FamousExamsFooter = ({ countryId }: FamousExamsFooterProps) => {
   const { exams, loading } = useFamousExamsByCountry(countryId);
 
+  // Fixed height skeleton to prevent CLS - matches loaded state approximate height
   if (loading) {
     return (
       <div style={{
-        background: '#0a1628',
-        borderTop: '2px solid #d4a017',
-        padding: '40px 0'
+        background: 'linear-gradient(135deg, #0a1628 0%, #0f2044 60%, #162d5e 100%)',
+        borderTop: '3px solid #d4a017',
+        padding: '40px 0 44px',
+        minHeight: '280px' // Reserve space to prevent layout shift
       }}>
-        <div className="portal-container" style={{ textAlign: 'center' }}>
-          <div style={{ display: 'inline-block', width: 24, height: 24, border: '3px solid #d4a017', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: 10, fontSize: 13 }}>Loading popular exams...</p>
+        <div className="portal-container">
+          {/* Skeleton header */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{
+              width: '200px',
+              height: '28px',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '4px',
+              margin: '0 auto 12px'
+            }} />
+            <div style={{
+              width: '180px',
+              height: '16px',
+              background: 'rgba(255,255,255,0.08)',
+              borderRadius: '4px',
+              margin: '0 auto 8px'
+            }} />
+            <div style={{
+              width: '100px',
+              height: '12px',
+              background: 'rgba(212,160,23,0.2)',
+              borderRadius: '4px',
+              margin: '0 auto'
+            }} />
+          </div>
+          {/* Skeleton pills grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 10,
+            opacity: 0.3
+          }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} style={{
+                height: '60px',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.05)'
+              }} />
+            ))}
+          </div>
         </div>
       </div>
     );
