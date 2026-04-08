@@ -17,27 +17,20 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
     country.country_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Auto-detect user's country on component mount
   useEffect(() => {
     const detectCountry = async () => {
       if (countries.length === 0) return;
-      
       setAutoDetecting(true);
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
-        
         if (data.country_name) {
           setDetectedCountry(data.country_name);
-          
           const matchedCountry = countries.find(
             country => country.country_name.toLowerCase() === data.country_name.toLowerCase()
           );
-          
           if (matchedCountry) {
-            setTimeout(() => {
-              onSelectCountry(matchedCountry);
-            }, 1500);
+            setTimeout(() => { onSelectCountry(matchedCountry); }, 1500);
           }
         }
       } catch (error) {
@@ -46,20 +39,18 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
         setAutoDetecting(false);
       }
     };
-
     detectCountry();
   }, [countries, onSelectCountry]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden transition-colors duration-300">
-      {/* Main Content */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <div className="flex flex-col items-center justify-center flex-1 p-4 sm:p-6">
+
           {/* Header */}
           <div className="text-center mb-8 sm:mb-12 animate-fade-in max-w-5xl mx-auto">
             <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl group">
               <div className="relative h-64 sm:h-80 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-800 dark:via-indigo-800 dark:to-purple-800 flex items-center justify-center overflow-hidden">
-                {/* Animated background pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -70,8 +61,6 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                     <rect width="100%" height="100%" fill="url(#grid)" />
                   </svg>
                 </div>
-
-                {/* Center content */}
                 <div className="relative z-10 text-white px-6">
                   <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-md rounded-3xl mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                     <Globe className="w-10 h-10 sm:w-12 sm:h-12 animate-pulse" />
@@ -83,8 +72,6 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                     Your gateway to government opportunities worldwide
                   </p>
                 </div>
-
-                {/* Decorative gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
             </div>
@@ -96,15 +83,13 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{countries.length}+ Countries</span>
               </div>
             </div>
-            
-            {/* Auto-detection notification */}
+
             {autoDetecting && (
               <div className="mt-4 inline-flex items-center gap-3 bg-blue-500 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-lg animate-pulse">
                 <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span className="font-semibold">Detecting your location...</span>
               </div>
             )}
-            
             {detectedCountry && !autoDetecting && (
               <div className="mt-4 inline-flex items-center gap-3 bg-green-500 dark:bg-green-600 text-white px-6 py-3 rounded-2xl shadow-lg animate-bounce">
                 <span className="text-xl">✓</span>
@@ -114,7 +99,16 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
           </div>
 
           {/* Search and Country Grid */}
-          <div className="w-full max-w-6xl mx-auto">
+          {/*
+            FIX: Added min-height to this wrapper.
+            PageSpeed reported "Layout shift culprits: <div class='w-full max-w-6xl mx-auto'>"
+            with a shift score of 0.013. This happened because the grid would render empty,
+            then fill in once countries loaded, pushing content below it down.
+            The min-height reserves space equivalent to approximately 3 rows of country cards
+            so the layout is stable before and after data arrives.
+          */}
+          <div className="w-full max-w-6xl mx-auto" style={{ minHeight: '480px' }}>
+
             {/* Search Box */}
             <div className="relative mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 pointer-events-none" />
@@ -147,9 +141,7 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                       onClick={() => onSelectCountry(country)}
                       className="group relative overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-600 p-6 sm:p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-500/50 dark:focus:ring-blue-600/50"
                     >
-                      {/* Gradient overlay on hover */}
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      
                       <div className="relative">
                         <div className="text-5xl sm:text-6xl mb-3 group-hover:scale-125 transition-transform duration-300 drop-shadow-lg">
                           {country.flag_emoji || "🏳️"}
@@ -162,7 +154,6 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
                   ))}
                 </div>
 
-                {/* Footer Note */}
                 <div className="mt-10 text-center">
                   <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl px-6 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
@@ -180,19 +171,10 @@ export const CountrySelector = ({ onSelectCountry }: CountrySelectorProps) => {
 
       <style>{`
         @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out forwards;
-        }
+        .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
       `}</style>
     </div>
   );
