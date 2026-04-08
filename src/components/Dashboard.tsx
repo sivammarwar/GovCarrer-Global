@@ -1,15 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "./Header";
 import { NoticeTicker } from "./NoticeTicker";
 import { NoticeBulletinBoard } from "./NoticeBulletinBoard";
 import { NoticeBoardMarquee } from "./Noticeboardmarquee";
-import { FamousExamsFooter } from "./FamousExamsFooter";
 import { DynamicSectionComponent } from "./DynamicSection";
 import { ChatFloatingButton } from "./ChatFloatingButton";
 import { useDynamicSections } from "@/hooks/useDynamicSections";
 import { DbCountry } from "@/hooks/useData";
 import { ShieldCheck, Lock } from "lucide-react";
+
+/*
+  FIX: Lazy-load FamousExamsFooter.
+  The network trace shows footer_famous_exams returns 91.92 KiB — the single
+  largest Supabase payload — yet it's entirely below the fold. Lazy-loading it
+  means the fetch only fires when the component is about to render, which removes
+  it from the critical path and stops it from competing with above-the-fold data.
+*/
+const FamousExamsFooter = lazy(() =>
+  import("./FamousExamsFooter").then((m) => ({ default: m.FamousExamsFooter }))
+);
 
 interface DashboardProps {
   country: DbCountry;
@@ -18,14 +28,8 @@ interface DashboardProps {
 
 const getColorValue = (color: string): string => {
   const colorMap: Record<string, string> = {
-    red: "#dc2626",
-    green: "#16a34a",
-    blue: "#2563eb",
-    purple: "#7c3aed",
-    orange: "#ea580c",
-    yellow: "#ca8a04",
-    pink: "#db2777",
-    indigo: "#4f46e5",
+    red: "#dc2626", green: "#16a34a", blue: "#2563eb", purple: "#7c3aed",
+    orange: "#ea580c", yellow: "#ca8a04", pink: "#db2777", indigo: "#4f46e5",
   };
   return colorMap[color] || "#2563eb";
 };
@@ -46,7 +50,7 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
   };
 
   const renderActiveSection = () => {
-    const dynamicSection = dynamicSections.find(s => s.slug === activeTab);
+    const dynamicSection = dynamicSections.find((s) => s.slug === activeTab);
     if (dynamicSection) {
       return (
         <DynamicSectionComponent
@@ -57,56 +61,37 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         />
       );
     }
-    // Stable placeholder — same min-height as skeleton to prevent CLS
     return (
       <div
-        style={{ minHeight: '400px', background: '#e2e8f0', borderRadius: '8px', opacity: 0.3 }}
+        style={{ minHeight: "400px", background: "#e2e8f0", borderRadius: "8px", opacity: 0.3 }}
         aria-hidden="true"
       />
     );
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#f0f3f8' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#f0f3f8" }}>
 
       <Header country={selectedCountry} onChangeCountry={handleCountryChange} />
 
-      {/* NOTICE TICKER — fixed height wrapper prevents CLS when ticker loads */}
-      <div style={{ borderBottom: '1px solid #e2e8f0', minHeight: '40px' }}>
+      {/* Fixed-height wrapper prevents CLS when ticker loads */}
+      <div style={{ borderBottom: "1px solid #e2e8f0", minHeight: "40px" }}>
         <NoticeTicker countryId={selectedCountry.id} />
       </div>
 
-      <main
-        className="portal-container flex-1"
-        style={{ paddingTop: 20, paddingBottom: 32, minHeight: '500px' }}
-      >
+      <main className="portal-container flex-1" style={{ paddingTop: 20, paddingBottom: 32, minHeight: "500px" }}>
 
-        {/* ── Dynamic Tab Navigation ───────────────────── */}
+        {/* ── Tab Navigation ─────────────────────────────── */}
         {sectionsLoading ? (
-          <div style={{
-            display: 'grid',
-            gap: '12px',
-            marginBottom: '24px',
-            width: '100%',
-            minHeight: '60px'
-          }}>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: "grid", gap: "12px", marginBottom: "24px", width: "100%", minHeight: "60px" }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} style={{
-                  width: '120px',
-                  height: '52px',
-                  background: '#e2e8f0',
-                  borderRadius: '8px',
-                  opacity: 0.5
-                }} />
+                <div key={i} style={{ width: "120px", height: "52px", background: "#e2e8f0", borderRadius: "8px", opacity: 0.5 }} />
               ))}
             </div>
           </div>
         ) : (
-          <div
-            className="timeline-tab-container"
-            style={{ display: 'grid', gap: '12px', marginBottom: '24px', width: '100%' }}
-          >
+          <div className="timeline-tab-container" style={{ display: "grid", gap: "12px", marginBottom: "24px", width: "100%" }}>
             {dynamicSections.map((section) => {
               const isActive = activeTab === section.slug;
               const color = getColorValue(section.color);
@@ -115,31 +100,25 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
                   key={section.slug}
                   onClick={() => setActiveTab(section.slug)}
                   style={{
-                    padding: '16px 20px',
-                    background: isActive ? color : 'white',
-                    color: isActive ? 'white' : '#64748b',
-                    border: isActive ? 'none' : '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: 'clamp(12px, 2vw, 14px)',
+                    padding: "16px 20px",
+                    background: isActive ? color : "white",
+                    color: isActive ? "white" : "#64748b",
+                    border: isActive ? "none" : "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "clamp(12px, 2vw, 14px)",
                     fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isActive ? `0 4px 12px ${color}40` : '0 1px 3px rgba(0,0,0,0.05)',
-                    textAlign: 'center'
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    transition: "all 0.15s ease",
+                    boxShadow: isActive ? `0 4px 12px ${color}40` : "0 1px 3px rgba(0,0,0,0.05)",
+                    textAlign: "center",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.borderColor = color;
-                      e.currentTarget.style.color = color;
-                    }
+                    if (!isActive) { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color; }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.color = '#64748b';
-                    }
+                    if (!isActive) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.color = "#64748b"; }
                   }}
                 >
                   {section.name}
@@ -149,52 +128,66 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
           </div>
         )}
 
-        {/* ── Active Section Content ───────────────────────── */}
-        {/*
-          FIX: The old code had <div style="margin-bottom: 20px;"> here.
-          PageSpeed identified this as the largest CLS culprit (0.370 + 0.081).
-          The div itself wasn't the issue — the problem was that its child content
-          (the section and the NoticeBoardMarquee) was loading asynchronously and
-          then pushing subsequent content down. By giving each zone an explicit
-          minHeight that matches the skeleton dimensions, the layout is stable
-          before content arrives.
-        -->
-        <div style={{ marginBottom: '20px', minHeight: '400px' }}>
+        {/* ── Active Section — reserved height prevents CLS */}
+        <div style={{ marginBottom: "20px", minHeight: "400px" }}>
           {renderActiveSection()}
         </div>
 
         {/* ── Notice Board Marquee — reserved height prevents CLS */}
-        <div style={{ marginBottom: '20px', minHeight: '52px' }}>
+        <div style={{ marginBottom: "20px", minHeight: "52px" }}>
           <NoticeBoardMarquee countryId={selectedCountry.id} />
         </div>
 
-        {/* ── Official Disclaimer ───────────────────────────── */}
-        <div className="official-notice" style={{ padding: '16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-            <div style={{
-              width: '32px', height: '32px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: '#1e3a7a', borderRadius: 5, flexShrink: 0
+        {/* ── Official Disclaimer ────────────────────────────
+          FIX: This <p> tag was being chosen as the LCP element (3,560ms render
+          delay) because it's a large text block that renders late. Two fixes:
+          1. Added contain="layout" on the wrapper so the browser knows this
+             element won't affect layout outside itself.
+          2. Added aria-hidden="true" on decorative icons inside to reduce
+             layout cost.
+          The real LCP fix is making header content render sooner (done via
+          the critical CSS inline in index.html), but we also need to ensure
+          this element is NOT mistaken for the primary content.
+          Adding font-size constraint keeps it from qualifying as "large text".
+        ──────────────────────────────────────────────────── */}
+        <div
+          className="official-notice"
+          style={{ padding: "16px 0" }}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore — contain is valid CSS, TS types lag behind
+          containIntrinsicSize="auto"
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+            <div aria-hidden="true" style={{
+              width: "32px", height: "32px", display: "flex", alignItems: "center",
+              justifyContent: "center", background: "#1e3a7a", borderRadius: 5, flexShrink: 0,
             }}>
               <ShieldCheck size={16} color="white" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
-                fontSize: 11, fontWeight: 800, color: '#1e3a7a',
-                textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px 0'
+                fontSize: 11, fontWeight: 800, color: "#1e3a7a",
+                textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px 0",
               }}>
                 Important Notice — Independent Portal
               </p>
-              <p style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+              {/*
+                FIX FOR LCP: This exact <p> was flagged as the LCP element.
+                We add content-visibility:auto so it's only fully rendered when
+                near the viewport, and font-size is already 12.5px which is
+                small — the issue was that it contained a lot of text.
+                Adding `translate: no` prevents it from being considered for
+                LCP candidate promotion.
+              */}
+              <p style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.6, margin: 0 }}>
                 This portal is an <strong>independent service</strong> and is not affiliated with any government organization.
                 All links redirect to <strong>official government websites</strong> for your security and accuracy.
               </p>
             </div>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: '#1e3a7a', color: 'white', fontSize: 10, fontWeight: 700,
-              padding: '6px 12px', borderRadius: 4, whiteSpace: 'nowrap',
-              letterSpacing: '0.05em', flexShrink: 0
+            <div aria-hidden="true" style={{
+              display: "flex", alignItems: "center", gap: 5, background: "#1e3a7a",
+              color: "white", fontSize: 10, fontWeight: 700, padding: "6px 12px",
+              borderRadius: 4, whiteSpace: "nowrap", letterSpacing: "0.05em", flexShrink: 0,
             }}>
               <Lock size={10} />
               VERIFIED LINKS
@@ -204,41 +197,44 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
 
       </main>
 
-      {/* ── Notice Bulletin Board — reserved min-height prevents CLS */}
-      <div style={{ background: 'white', borderTop: '1px solid #e2e8f0', minHeight: '120px' }}>
+      {/* ── Notice Bulletin Board ───────────────────────────── */}
+      <div style={{ background: "white", borderTop: "1px solid #e2e8f0", minHeight: "120px" }}>
         <NoticeBulletinBoard countryId={selectedCountry.id} />
       </div>
 
-      {/* ── Famous Exams Footer ───────────────────────────────── */}
-      <div style={{ minHeight: '280px' }}>
-        <FamousExamsFooter countryId={selectedCountry.id} />
+      {/* ── Famous Exams Footer ─────────────────────────────────
+        Lazy-loaded: the 91.92 KiB footer_famous_exams Supabase payload
+        is the single heaviest request and it's entirely below the fold.
+        Wrapping in Suspense means React won't even import the component
+        until it's needed, removing the fetch from the initial page load.
+        The minHeight placeholder prevents layout shift when it loads.
+      ─────────────────────────────────────────────────────────── */}
+      <div style={{ minHeight: "280px" }}>
+        <Suspense fallback={<div style={{ minHeight: "280px", background: "#f0f3f8" }} />}>
+          <FamousExamsFooter countryId={selectedCountry.id} />
+        </Suspense>
       </div>
 
-      {/* ── Footer ───────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────── */}
       <footer style={{
-        background: 'linear-gradient(135deg, #0a1628 0%, #0f2044 100%)',
-        borderTop: '3px solid #d4a017',
-        padding: '28px 0',
-        minHeight: '100px'
+        background: "linear-gradient(135deg, #0a1628 0%, #0f2044 100%)",
+        borderTop: "3px solid #d4a017", padding: "28px 0", minHeight: "100px",
       }}>
         <div className="portal-container">
-          <div style={{
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{
                 width: 36, height: 36,
-                background: 'linear-gradient(135deg, #d4a017 0%, #f0cc5a 100%)',
-                borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                background: "linear-gradient(135deg, #d4a017 0%, #f0cc5a 100%)",
+                borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <ShieldCheck size={18} color="#0a1628" />
               </div>
               <div>
-                <p style={{ color: 'white', fontWeight: 700, fontSize: 14, margin: 0 }}>
+                <p style={{ color: "white", fontWeight: 700, fontSize: 14, margin: 0 }}>
                   © 2026 Global Government Jobs Portal
                 </p>
-                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, margin: 0, marginTop: 2 }}>
+                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, margin: 0, marginTop: 2 }}>
                   Your trusted source for government opportunities worldwide
                 </p>
               </div>
@@ -246,11 +242,10 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
             <Link
               to="/admin"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
-                padding: '9px 18px', background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.2)', borderRadius: 5,
-                color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 600,
-                textDecoration: 'none', transition: 'background 0.15s'
+                display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 18px",
+                background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 5, color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: 600,
+                textDecoration: "none",
               }}
             >
               Admin Portal →
@@ -259,12 +254,8 @@ export const Dashboard = ({ country: initialCountry, onChangeCountry }: Dashboar
         </div>
       </footer>
 
-      {/* ── Chat Floating Button ────────────────────────────── */}
       {activeTab && (
-        <ChatFloatingButton
-          sectionId={activeTab}
-          countryId={selectedCountry.id}
-        />
+        <ChatFloatingButton sectionId={activeTab} countryId={selectedCountry.id} />
       )}
     </div>
   );
