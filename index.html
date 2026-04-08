@@ -28,54 +28,60 @@
     <meta name="theme-color" content="#1e40af" />
 
     <!--
-      PRECONNECT FIXES vs last report:
-      - Supabase: keep crossorigin (authenticated CORS fetch).
-      - ipapi.co: REMOVED crossorigin. PageSpeed flagged the previous
-        "crossorigin" attribute as wrong — ipapi fetch uses default CORS
-        (no credentials), so the preconnect must omit crossorigin to share
-        the same connection pool as the actual fetch. Est LCP saving: 340ms.
-      - Added dns-prefetch as a belt-and-suspenders fallback.
+      PRECONNECT — only Supabase (with crossorigin for authenticated CORS).
+
+      ipapi.co REMOVED entirely:
+      - Lighthouse keeps flagging it as "Unused preconnect. Check that the
+        crossorigin attribute is used properly" regardless of whether we
+        include or omit the crossorigin attribute.
+      - ipapi.co is now outside the critical path (the React Query cache
+        means the fetch fires after hydration, not during initial load).
+      - Removing it stops Lighthouse from penalising us for it.
     -->
     <link rel="preconnect" href="https://fxzwlkhwfvydntrgqabs.supabase.co" crossorigin />
-    <link rel="preconnect" href="https://ipapi.co" />
     <link rel="dns-prefetch" href="https://fxzwlkhwfvydntrgqabs.supabase.co" />
-    <link rel="dns-prefetch" href="https://ipapi.co" />
 
     <!--
-      CRITICAL CSS — inlined to eliminate the render-blocking stylesheet.
-      PageSpeed: "/assets/index-B_44UeMI.css (19.5 KiB, 340ms blocking)".
-      We inline only the minimum rules needed for a correct first paint
-      (body reset, layout shell, sticky header dimensions). The full
-      Tailwind file still loads but non-blocking via media="print" swap.
-      This saves 340ms from the critical path.
+      CRITICAL CSS — inlined to give the browser enough to paint the first
+      frame before the Vite-generated CSS file downloads.
+
+      NOTE: We removed the previous `<link rel="stylesheet" media="print">` hack
+      because Vite hashes the CSS filename on every build (index-B_44UeMI.css
+      became index-zsq4kV4T.css), so the hardcoded path was loading the wrong
+      file and the real CSS was still injected by Vite's <script> normally —
+      meaning we had TWO CSS loads instead of one.
+
+      The correct approach for a Vite app is to let Vite inject the CSS link
+      normally (it does this via the <script type="module"> tag below), and only
+      inline the tiny subset of critical styles here. Vite's injected CSS is
+      NOT render-blocking in modern browsers when loaded alongside the module
+      script — the browser can parse HTML while the CSS and JS download in
+      parallel.
+
+      These inlined rules are the minimum for a stable, correct first paint:
     -->
     <style>
       *,*::before,*::after{box-sizing:border-box}
-      html{overflow-x:hidden;max-width:100vw;scroll-behavior:smooth}
-      body{margin:0;overflow-x:hidden;max-width:100vw;background-color:#f0f3f8;font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
-      #root{min-width:auto;width:100%;min-height:100vh}
-      .portal-container{width:100%;max-width:100%;margin-left:auto;margin-right:auto;padding-left:16px;padding-right:16px}
-      @media(min-width:768px){.portal-container{max-width:1240px;padding-left:24px;padding-right:24px}}
-      /* Sticky header shell — prevents layout reflow on first paint */
-      header[style*="sticky"]{position:sticky;top:0;z-index:40}
-      /* Skeleton color token used by loading states before Tailwind loads */
-      .min-h-screen{min-height:100vh}
-      .flex{display:flex}
-      .flex-col{flex-direction:column}
-      .flex-1{flex:1 1 0%}
+      html{overflow-x:hidden;scroll-behavior:smooth}
+      body{
+        margin:0;overflow-x:hidden;
+        background-color:#f0f3f8;
+        font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+        -webkit-font-smoothing:antialiased;
+      }
+      #root{width:100%;min-height:100vh}
+      /* Prevent flash of unstyled sticky header */
+      body>div>div{min-height:100vh}
     </style>
 
-    <!-- Full app CSS — loaded non-blocking, swaps to 'all' once downloaded -->
-    <link rel="stylesheet" href="/assets/index-B_44UeMI.css" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="/assets/index-B_44UeMI.css" /></noscript>
-
-    <!-- Google Fonts — non-blocking (Source Serif 4 removed; only IBM Plex Sans is used) -->
+    <!-- Google Fonts — non-blocking -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" /></noscript>
 
     <!--
-      AdSense — deferred until the browser is idle.
-      requestIdleCallback fires after the main thread is free, so it no
-      longer blocks FCP or LCP. Fallback to 2s setTimeout for Safari.
+      AdSense — deferred until browser is idle.
+      requestIdleCallback fires after main thread is free, so it never
+      blocks FCP or LCP. Falls back to 2s setTimeout for Safari.
     -->
     <script>
       function loadAdSense() {
@@ -95,6 +101,7 @@
 
   <body>
     <div id="root"></div>
+    <!-- Vite injects the hashed CSS <link> and the module script automatically -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
